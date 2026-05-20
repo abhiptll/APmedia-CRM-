@@ -2,784 +2,650 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0C0A09">
 <title>APmedia Hub</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
-  body { font-family: 'Geist', system-ui, sans-serif; background: #0C0A09; color: #E7E5E4; margin: 0; }
-  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
-  .num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: #1C1917; }
-  ::-webkit-scrollbar-thumb { background: #44403C; border-radius: 4px; }
-  .scroll-hide::-webkit-scrollbar { display: none; }
-  .row-hover:hover { background: rgba(28,25,23,0.8); }
-  .fade-in { animation: fadeUp 0.18s ease-out; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .logo-dot { display: inline-block; width: 7px; height: 7px; background: #3B82F6; border-radius: 999px; vertical-align: middle; margin: 0 5px 3px 0; }
-  
-  /* Mac-style status dots */
-  .s-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.25) inset; }
-  .s-dot-sent      { background: #6B7280; }
-  .s-dot-responded { background: #3B82F6; box-shadow: 0 0 6px rgba(59,130,246,0.5), 0 0 0 1.5px rgba(0,0,0,0.25) inset; }
-  .s-dot-followup  { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.5), 0 0 0 1.5px rgba(0,0,0,0.25) inset; }
-  .s-dot-closed    { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.5), 0 0 0 1.5px rgba(0,0,0,0.25) inset; }
-  .s-dot-ni        { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.5), 0 0 0 1.5px rgba(0,0,0,0.25) inset; }
-
-  input, select, textarea { font-family: 'Geist', system-ui, sans-serif; }
-  input:focus, select:focus { outline: none; border-color: #3B82F6 !important; }
-  
-  input[type=file]::file-selector-button {
-    background: #292524; color: #A8A29E; border: 1px solid #44403C;
-    padding: 3px 10px; border-radius: 5px; cursor: pointer; font-size: 11px;
-    font-family: 'Geist', sans-serif; margin-right: 8px;
+  *, *::before, *::after { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  :root {
+    --bg: #0C0A09;
+    --surface: #141211;
+    --surface2: #1A1816;
+    --border: #242120;
+    --border2: #2E2B29;
+    --text: #E7E5E4;
+    --muted: #78716C;
+    --dim: #44403C;
+    --blue: #3B82F6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #EF4444;
   }
+  body { font-family: 'Geist', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100dvh; overscroll-behavior: none; }
+  .serif { font-family: 'Fraunces', serif; }
+  .num { font-variant-numeric: tabular-nums; }
   
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-  .modal-box { background: #1A1816; border: 1px solid #3D3836; border-radius: 18px; padding: 28px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-  .stat-card { background: #141211; border: 1px solid #292524; border-radius: 14px; padding: 20px; }
-  .field { background: #1A1816; border: 1px solid #292524; padding: 10px 14px; border-radius: 10px; font-size: 13px; color: #E7E5E4; width: 100%; transition: border-color 0.15s; }
-  .field::placeholder { color: #57534E; }
-  .btn-primary { background: #2563EB; color: white; font-size: 12px; font-weight: 600; padding: 8px 18px; border-radius: 9px; border: none; cursor: pointer; transition: background 0.15s; }
-  .btn-primary:hover { background: #1D4ED8; }
-  .btn-ghost { background: transparent; color: #78716C; font-size: 12px; padding: 8px 14px; border-radius: 9px; border: 1px solid #292524; cursor: pointer; transition: all 0.15s; }
-  .btn-ghost:hover { color: #E7E5E4; border-color: #44403C; }
-  
-  .pill-filter { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid #292524; cursor: pointer; transition: all 0.15s; background: transparent; color: #57534E; display: inline-flex; align-items: center; gap: 5px; }
-  .pill-filter:hover { color: #A8A29E; border-color: #44403C; }
-  .pill-filter.active { background: #1C1917; border-color: #44403C; color: #E7E5E4; }
+  /* Status dots */
+  .dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
+  .dot-sent     { background: #6B7280; width:9px; height:9px; }
+  .dot-responded{ background: var(--blue); width:9px; height:9px; box-shadow: 0 0 7px rgba(59,130,246,0.6); }
+  .dot-followup { background: var(--amber); width:9px; height:9px; box-shadow: 0 0 7px rgba(245,158,11,0.6); }
+  .dot-closed   { background: var(--green); width:9px; height:9px; box-shadow: 0 0 7px rgba(16,185,129,0.6); }
+  .dot-ni       { background: var(--red); width:9px; height:9px; box-shadow: 0 0 7px rgba(239,68,68,0.6); }
 
-  .nav-btn { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 11px; font-size: 13px; font-weight: 500; transition: all 0.15s; width: 100%; border: 1px solid transparent; cursor: pointer; background: transparent; white-space: nowrap; }
-  .nav-btn:hover { background: #1A1816; color: #E7E5E4; }
-  .nav-btn.active { background: rgba(37,99,235,0.12); color: #60A5FA; border-color: rgba(37,99,235,0.25); }
-  .nav-btn .nav-label { flex: 1; text-align: left; }
-
-  .tbl-head { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #57534E; font-weight: 600; padding: 10px 20px; }
-  .tbl-cell { padding: 12px 20px; font-size: 13px; border-bottom: 1px solid rgba(41,37,36,0.6); }
-
-  .pkg-card { background: #1A1816; border: 1px solid #292524; border-radius: 12px; padding: 16px; position: relative; }
-  .pkg-card:hover { border-color: #3D3836; }
-
-  @media (max-width: 768px) {
-    aside { position: sticky; top: 0; z-index: 20; }
-    .nav-btn .nav-label { display: none; }
-    .nav-btn { padding: 8px 10px; justify-content: center; }
-    .nav-btn gap-10 { gap: 0; }
+  /* Inputs */
+  .field {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px;
+    padding: 10px 14px; border-radius: 10px; width: 100%; transition: border-color 0.15s;
   }
+  .field::placeholder { color: var(--dim); }
+  .field:focus { outline: none; border-color: var(--blue); }
+  select.field { cursor: pointer; }
+
+  /* Buttons */
+  .btn { font-family: 'Geist', sans-serif; border: none; cursor: pointer; border-radius: 10px; font-weight: 500; transition: all 0.15s; }
+  .btn-blue { background: var(--blue); color: white; padding: 10px 18px; font-size: 13px; }
+  .btn-blue:hover { background: #2563EB; }
+  .btn-ghost { background: transparent; color: var(--muted); padding: 9px 14px; font-size: 13px; border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+  .btn-danger { background: transparent; color: var(--dim); font-size: 18px; padding: 2px 8px; border-radius: 6px; line-height: 1; }
+  .btn-danger:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+
+  /* Table */
+  .tbl-th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); font-weight: 600; padding: 10px 16px; text-align: left; }
+  .tbl-td { padding: 13px 16px; border-bottom: 1px solid rgba(36,33,32,0.7); font-size: 13px; }
+  .tbl-row:hover { background: rgba(26,24,22,0.7); }
+  .tbl-row:last-child td { border-bottom: none; }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 200; display: flex; align-items: flex-end; justify-content: center; padding: 0; backdrop-filter: blur(6px); }
+  @media (min-width: 640px) { .modal-bg { align-items: center; padding: 24px; } }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 20px 20px 0 0;
+    padding: 24px; width: 100%; max-height: 92dvh; overflow-y: auto;
+    animation: slideUp 0.2s ease-out;
+  }
+  @media (min-width: 640px) { .modal-box { border-radius: 18px; max-width: 480px; animation: fadeIn 0.15s; } }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; display: block; }
+
+  /* Alert badge */
+  .alert-pill { background: rgba(120,53,15,0.2); border: 1px solid rgba(217,119,6,0.3); border-radius: 10px; padding: 12px 16px; }
+
+  /* Pill filter */
+  .pill { font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--dim); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .pill:hover { color: var(--muted); border-color: var(--border2); }
+  .pill.on { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+  /* Desktop sidebar */
+  #sidebar { width: 210px; min-width: 210px; background: #0F0E0D; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 22px 14px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border: 1px solid transparent; background: none; width: 100%; transition: all 0.15s; }
+  .nav-item:hover { color: var(--text); background: var(--surface); }
+  .nav-item.on { color: #60A5FA; background: var(--blue-dim); border-color: rgba(59,130,246,0.2); }
+
+  /* Mobile bottom nav */
+  #bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: rgba(15,14,13,0.95); backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid var(--border); padding: 8px 0 max(8px, env(safe-area-inset-bottom)); }
+  .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--dim); cursor: pointer; background: none; border: none; padding: 6px 0; transition: color 0.15s; }
+  .bnav-item.on { color: #60A5FA; }
+  .bnav-item svg { width: 22px; height: 22px; }
+
+  /* Main scroll area */
+  #main { flex: 1; overflow-y: auto; padding: 28px 32px; max-width: 1000px; }
+
+  @media (max-width: 767px) {
+    #sidebar { display: none !important; }
+    #bottom-nav { display: flex; }
+    #main { padding: 16px 16px 88px; width: 100%; }
+    .stat-grid { grid-template-columns: 1fr 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .desktop-only { display: none !important; }
+  }
+
+  .fade { animation: fadeIn 0.18s ease-out; }
+
+  /* Progress bar */
+  .pbar { background: var(--surface2); border-radius: 99px; height: 4px; overflow: hidden; }
+  .pbar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+  /* Package card */
+  .pkg { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; position: relative; }
+  .pkg:hover { border-color: var(--border2); }
+  .pkg-del { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; opacity: 0; transition: opacity 0.15s; padding: 0; line-height: 1; }
+  .pkg:hover .pkg-del { opacity: 1; }
+  .pkg-del:hover { color: var(--red); }
+
+  .section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .section-title { font-size: 26px; font-weight: 300; color: white; letter-spacing: -0.02em; margin: 0; }
+  .section-sub { color: var(--dim); font-size: 12px; margin: 4px 0 0; }
+  
+  input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
 </style>
 </head>
-<body class="min-h-screen">
-<div id="app" class="flex flex-col md:flex-row min-h-screen"></div>
+<body>
+<div id="app" style="display:flex;min-height:100dvh"></div>
 
 <script type="module">
-// ─── Config ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = "https://nyawnrewrjsmmqmkkdig.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SB_URL = "https://nyawnrewrjsmmqmkkdig.supabase.co";
+const SB_KEY = "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-const STATUSES = ['Sent', 'Responded', 'Follow Up', 'Closed', 'Not Interested'];
-const DOT_CLASS = {
-  'Sent': 's-dot-sent',
-  'Responded': 's-dot-responded',
-  'Follow Up': 's-dot-followup',
-  'Closed': 's-dot-closed',
-  'Not Interested': 's-dot-ni'
+const STATUSES = ['Sent','Responded','Follow Up','Closed','Not Interested'];
+const DOT = { Sent:'dot-sent', Responded:'dot-responded', 'Follow Up':'dot-followup', Closed:'dot-closed', 'Not Interested':'dot-ni' };
+
+let $ = {
+  user: null, view: 'crm', leads: [],
+  packages: [ {id:1,name:'Highlight Reel',price:25,desc:'60-sec game highlight, 1 revision'}, {id:2,name:'Full Mixtape',price:75,desc:'3-5 min mixtape, music + graphics, 2 revisions'}, {id:3,name:'Social Pack',price:150,desc:'3× short clips + full highlight + covers'} ],
+  settings: { dailyGoal:10, revenueGoal:500 },
+  filter:'All', search:'', showForm:false, showModal:false, editId:null,
+  authLoading:false,
 };
 
-// ─── State ────────────────────────────────────────────────────────────────────
-let S = {
-  user: null,
-  view: 'crm',
-  leads: [],
-  analytics: [],
-  gallery: [],
-  packages: [
-    { id: 1, name: 'Highlight Reel', price: 25, desc: '60-sec game highlight, 1 revision' },
-    { id: 2, name: 'Full Mixtape', price: 75, desc: '3–5 min mixtape, music, graphics, 2 revisions' },
-    { id: 3, name: 'Social Pack', price: 150, desc: '3× short clips + full highlight + story covers' },
-  ],
-  settings: { dailyGoal: 10, pricePerEdit: 25, revenueGoal: 500 },
-  filter: 'All',
-  search: '',
-  showForm: false,
-  showModal: false,
-  authLoading: false,
-};
+// ── Persist ──────────────────────────────────────────────────────────────────
+const lk = k => `ap_${k}_${$.user?.id}`;
+const ls = (k,v) => { if ($.user) localStorage.setItem(lk(k), JSON.stringify(v)); };
+const ll = (k,fb) => { if (!$.user) return fb; try { const v = localStorage.getItem(lk(k)); return v ? JSON.parse(v) : fb; } catch { return fb; } };
 
-// ─── Local Storage ────────────────────────────────────────────────────────────
-const lsKey = (k) => `apmedia_${k}_${S.user?.id}`;
-const lsSave = (k, v) => { if (S.user) localStorage.setItem(lsKey(k), JSON.stringify(v)); };
-const lsLoad = (k, fb) => { if (!S.user) return fb; try { const v = localStorage.getItem(lsKey(k)); return v ? JSON.parse(v) : fb; } catch { return fb; } };
-
-// ─── Auth & Data ──────────────────────────────────────────────────────────────
-async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
-  S.user = session?.user ?? null;
-  supabase.auth.onAuthStateChange((_, s) => {
-    S.user = s?.user ?? null;
-    S.user ? loadAll() : render();
-  });
-  S.user ? loadAll() : render();
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  $.user = session?.user ?? null;
+  sb.auth.onAuthStateChange((_,s) => { $.user = s?.user ?? null; $.user ? load() : render(); });
+  $.user ? load() : render();
 }
 
-async function loadAll() {
-  const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-  if (!error && data) S.leads = data;
-  S.analytics = lsLoad('analytics', []);
-  S.gallery   = lsLoad('gallery', []);
-  S.packages  = lsLoad('packages', S.packages);
-  const cfg   = lsLoad('settings', null);
-  if (cfg) S.settings = { ...S.settings, ...cfg };
+async function load() {
+  const { data, error } = await sb.from('leads').select('*').order('created_at', { ascending: false });
+  if (!error && data) $.leads = data;
+  $.packages = ll('packages', $.packages);
+  $.settings = { ...$.settings, ...ll('settings', {}) };
   render();
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const todayStr = () => new Date().toISOString().slice(0, 10);
-const fmtDate  = (s) => { if (!s) return ''; const [,m,d] = s.split('-'); return `${+m}/${+d}`; };
-const esc      = (s) => (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+// ── Utils ─────────────────────────────────────────────────────────────────────
+const today = () => new Date().toISOString().slice(0,10);
+const fmt = s => { if (!s) return ''; const [,m,d] = (s||'').slice(0,10).split('-'); return `${+m}/${+d}`; };
+const esc = s => (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
-function computeStats() {
-  const total = S.leads.length;
-  const today = todayStr();
-  const sentToday = S.leads.filter(l => (l.date||'').startsWith(today)).length;
-  const responded = S.leads.filter(l => ['Responded','Closed'].includes(l.status)).length;
-  const closed    = S.leads.filter(l => l.status === 'Closed').length;
-  return {
-    total, sentToday, responded, closed,
-    revenue: closed * S.settings.pricePerEdit,
-    responseRate: total ? Math.round((responded/total)*100) : 0,
-    convRate: total ? Math.round((closed/total)*100) : 0,
-    remaining: Math.max(0, S.settings.dailyGoal - sentToday),
-  };
+function stats() {
+  const all = $.leads, total = all.length, t = today();
+  const sentToday = all.filter(l => (l.date||'').startsWith(t)).length;
+  const responded = all.filter(l => ['Responded','Closed'].includes(l.status)).length;
+  const closed    = all.filter(l => l.status === 'Closed').length;
+  const revenue   = all.reduce((sum, l) => sum + (parseFloat(l.price)||0), 0);
+  return { total, sentToday, responded, closed, revenue,
+    rr: total ? Math.round(responded/total*100) : 0,
+    cr: total ? Math.round(closed/total*100) : 0,
+    remaining: Math.max(0, $.settings.dailyGoal - sentToday) };
 }
 
-function getStaleLeads() {
-  const now = Date.now();
-  return S.leads.filter(l => {
+function stale() {
+  return $.leads.filter(l => {
     if (l.status !== 'Sent') return false;
-    const d = new Date(l.date || l.created_at);
-    return (now - d) / 864e5 >= 3;
+    return (Date.now() - new Date(l.date||l.created_at)) / 864e5 >= 3;
   });
 }
 
-function filteredLeads() {
-  let list = [...S.leads];
-  if (S.filter !== 'All') list = list.filter(l => l.status === S.filter);
-  if (S.search.trim()) {
-    const q = S.search.trim().toLowerCase();
-    list = list.filter(l => (l.name||'').toLowerCase().includes(q) || (l.school||'').toLowerCase().includes(q) || (l.ig||'').toLowerCase().includes(q));
+function filtered() {
+  let l = [...$.leads];
+  if ($.filter !== 'All') l = l.filter(x => x.status === $.filter);
+  if ($.search.trim()) {
+    const q = $.search.trim().toLowerCase();
+    l = l.filter(x => (x.name||'').toLowerCase().includes(q) || (x.school||'').toLowerCase().includes(q) || (x.ig||'').toLowerCase().includes(q));
   }
-  return list;
+  return l;
 }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   const app = document.getElementById('app');
+  if (!$.user) { app.innerHTML = loginHTML(); return; }
 
-  if (!S.user) {
-    app.innerHTML = `
-      <div class="min-h-screen w-full flex flex-col justify-center items-center px-6" style="background:#0C0A09">
-        <div class="max-w-sm w-full fade-in" style="background:#141211;border:1px solid #292524;border-radius:20px;padding:40px;text-align:center">
-          <div class="serif text-4xl font-light text-white mb-2" style="letter-spacing:-0.02em">
-            <span class="logo-dot"></span>APmedia <em style="color:#57534E;font-style:italic">hub</em>
-          </div>
-          <p style="color:#57534E;font-size:13px;margin:10px 0 32px">Production pipeline & portfolio system.</p>
-          <button onclick="window.__ap.login()" ${S.authLoading?'disabled':''}
-            style="width:100%;padding:13px;background:#1A1816;border:1px solid #3D3836;border-radius:12px;color:#E7E5E4;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            ${S.authLoading ? 'Connecting...' : 'Continue with Google'}
-          </button>
-        </div>
-      </div>`;
-    return;
-  }
-
-  let content = '';
-  if (S.view === 'crm')       content = renderCRM();
-  else if (S.view === 'vault') content = renderVault();
-  else if (S.view === 'metrics') content = renderMetrics();
-  else if (S.view === 'revenue') content = renderRevenue();
+  const main = $.view === 'crm' ? renderCRM() : renderRevenue();
+  const staleCount = stale().length;
 
   app.innerHTML = `
-    ${renderSidebar()}
-    <main style="flex:1;background:#0C0A09;padding:32px 40px;overflow-y:auto;max-width:1000px;width:100%">
-      ${content}
-    </main>
-    ${S.showModal ? renderModal() : ''}
-  `;
-
-  // bind file input
-  const fi = document.getElementById('vault-file-input');
-  if (fi) fi.addEventListener('change', e => { window.__pendingFiles = e.target.files; });
-}
-
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-function renderSidebar() {
-  const stale = getStaleLeads().length;
-  return `
-    <aside style="width:220px;min-width:220px;background:#0F0E0D;border-right:1px solid #1C1917;padding:24px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:100vh" class="shrink-0">
+    <div id="sidebar">
       <div>
-        <div class="serif text-white mb-8" style="font-size:22px;font-weight:300;letter-spacing:-0.01em;padding:4px 8px">
-          <span class="logo-dot"></span>APmedia <em style="color:#44403C">hub</em>
+        <div class="serif" style="font-size:20px;font-weight:300;color:white;padding:4px 10px 0;margin-bottom:24px;letter-spacing:-0.01em">
+          <span style="display:inline-block;width:7px;height:7px;background:var(--blue);border-radius:50%;vertical-align:middle;margin:0 5px 3px 0"></span>
+          APmedia <em style="color:var(--dim)">hub</em>
         </div>
-        <nav style="display:flex;flex-direction:column;gap:4px">
-          ${nb('crm', 'Pipeline', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`, stale ? `<span style="background:#F59E0B;color:#000;font-size:9px;font-weight:700;border-radius:20px;padding:1px 6px;min-width:16px;text-align:center">${stale}</span>` : '')}
-          ${nb('vault', 'Media Vault', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`)}
-          ${nb('metrics', 'Metrics', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>`)}
-          ${nb('revenue', 'Revenue Hub', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`)}
+        <nav style="display:flex;flex-direction:column;gap:3px">
+          ${ni('crm','Pipeline',pipeIcon(), staleCount ? `<span style="background:var(--amber);color:#000;font-size:9px;font-weight:700;border-radius:20px;padding:2px 6px;margin-left:auto">${staleCount}</span>` : '')}
+          ${ni('rev','Revenue',revIcon())}
         </nav>
       </div>
-      <div style="padding:0 4px;font-size:11px;color:#44403C">
-        <div style="border-top:1px solid #1C1917;padding-top:14px;margin-top:14px">
-          <div style="color:#57534E;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px">${esc(S.user?.email||'')}</div>
-          <button onclick="window.__ap.logout()" style="color:#7F1D1D;font-size:11px;background:none;border:none;cursor:pointer;padding:0">Sign Out</button>
-        </div>
+      <div style="padding:0 6px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px">${esc($.user?.email||'')}</div>
+        <button onclick="A.logout()" style="font-size:11px;color:#7F1D1D;background:none;border:none;cursor:pointer;padding:0">Sign out</button>
       </div>
-    </aside>
+    </div>
+    <div id="main">${main}</div>
+    <nav id="bottom-nav">
+      ${bni('crm','Pipeline',pipeIcon(), staleCount)}
+      ${bni('rev','Revenue',revIcon())}
+    </nav>
+    ${$.showModal ? modalHTML() : ''}
   `;
+
+  // rebind file input
+  const f = document.getElementById('vf');
+  if (f) f.addEventListener('change', e => { window.__pf = e.target.files; });
 }
 
-function nb(view, label, icon, badge = '') {
-  const active = S.view === view;
-  return `<button onclick="window.__ap.setView('${view}')" class="nav-btn${active?' active':''}" style="color:${active?'#60A5FA':'#57534E'}">
-    ${icon}<span class="nav-label">${label}</span>${badge}
+function ni(v, label, icon, badge='') {
+  return `<button onclick="A.go('${v}')" class="nav-item${$.view===v?' on':''}">
+    ${icon}<span style="flex:1;text-align:left">${label}</span>${badge}
+  </button>`;
+}
+function bni(v, label, icon, badge=0) {
+  return `<button onclick="A.go('${v}')" class="bnav-item${$.view===v?' on':''}">
+    ${icon}
+    <span>${label}</span>
+    ${badge ? `<span style="position:absolute;top:4px;background:var(--amber);color:#000;font-size:8px;font-weight:700;border-radius:10px;padding:1px 4px">${badge}</span>` : ''}
   </button>`;
 }
 
-// ─── CRM View ─────────────────────────────────────────────────────────────────
+// ── Login ─────────────────────────────────────────────────────────────────────
+function loginHTML() {
+  return `<div style="min-height:100dvh;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;background:var(--bg)">
+    <div style="max-width:340px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;text-align:center">
+      <div class="serif" style="font-size:36px;font-weight:300;color:white;letter-spacing:-0.02em;margin-bottom:6px">
+        <span style="display:inline-block;width:8px;height:8px;background:var(--blue);border-radius:50%;vertical-align:middle;margin:0 5px 4px 0"></span>
+        APmedia <em style="color:var(--dim)">hub</em>
+      </div>
+      <p style="color:var(--dim);font-size:13px;margin:0 0 28px">Daily pipeline & revenue dashboard.</p>
+      <button onclick="A.login()" ${$.authLoading?'disabled':''} style="width:100%;padding:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Geist,sans-serif;transition:background 0.15s">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        ${$.authLoading ? 'Signing in...' : 'Continue with Google'}
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── CRM ───────────────────────────────────────────────────────────────────────
 function renderCRM() {
-  const st = computeStats();
-  const list = filteredLeads();
-  const stale = getStaleLeads();
-
-  return `<div class="fade-in">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid #1C1917">
+  const s = stats(), list = filtered(), late = stale();
+  return `<div class="fade">
+    <div class="section-header">
       <div>
-        <h2 class="serif" style="font-size:28px;font-weight:300;color:white;letter-spacing:-0.02em;margin:0">Outreach Pipeline</h2>
-        <p style="color:#57534E;font-size:12px;margin:5px 0 0">Athlete DM tracking & conversion engine.</p>
+        <h2 class="serif section-title">Pipeline</h2>
+        <p class="section-sub">Athlete outreach & deal tracking.</p>
       </div>
-      <button class="btn-primary" onclick="window.__ap.toggleForm()">+ Add Athlete</button>
+      <button class="btn btn-blue" onclick="A.openForm()">+ Add Athlete</button>
     </div>
 
-    ${stale.length > 0 ? `
-      <div style="background:rgba(120,53,15,0.15);border:1px solid rgba(120,53,15,0.4);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px">
-        <span class="s-dot s-dot-followup" style="margin-top:2px"></span>
+    ${late.length ? `
+      <div class="alert-pill" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:10px">
+        <span class="dot dot-followup" style="margin-top:2px;flex-shrink:0"></span>
         <div>
-          <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:4px">${stale.length} lead${stale.length>1?'s':''} need follow-up (sent 3+ days ago)</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${stale.map(l=>`<span style="font-size:11px;color:#A8A29E;background:#1C1917;border:1px solid #292524;padding:2px 8px;border-radius:6px">${esc(l.name)}</span>`).join('')}</div>
+          <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:5px">${late.length} lead${late.length>1?'s':''} waiting 3+ days — time to follow up</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${late.map(l=>`<span style="font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:2px 8px;border-radius:6px">${esc(l.name)}</span>`).join('')}</div>
         </div>
       </div>
     ` : ''}
 
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Today's DMs</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:white">${st.sentToday}<span style="color:#3D3836;font-size:18px;font-family:Geist,sans-serif"> / ${S.settings.dailyGoal}</span></div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Today's DMs</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:white">${s.sentToday}<span style="color:var(--dim);font-size:16px;font-family:Geist,sans-serif"> /${$.settings.dailyGoal}</span></div>
+        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${Math.min(100,Math.round(s.sentToday/$.settings.dailyGoal*100))}%;background:var(--blue)"></div></div>
       </div>
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Reply Rate</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#3B82F6">${st.responseRate}%</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Reply Rate</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--blue)">${s.rr}%</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.responded} of ${s.total} replied</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Closed Deals</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#10B981">${st.closed}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Closed</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">${s.closed}</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.cr}% close rate</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Revenue</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#10B981">$${st.revenue}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Revenue</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">$${s.revenue.toFixed(0)}</div>
+        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${Math.min(100,$.settings.revenueGoal?Math.round(s.revenue/$.settings.revenueGoal*100):0)}%;background:var(--green)"></div></div>
       </div>
     </div>
 
-    ${S.showForm ? `
-      <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:24px;margin-bottom:20px" class="fade-in">
-        <form onsubmit="event.preventDefault();window.__ap.submitForm(this)" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <input name="name" required placeholder="Athlete Name *" class="field" />
-          <input name="ig" placeholder="@instagram" class="field" />
-          <input name="school" placeholder="High School" class="field" />
-          <input name="college" placeholder="Committed College" class="field" />
-          <div style="grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
-            <button type="button" onclick="window.__ap.toggleForm()" class="btn-ghost">Cancel</button>
-            <button type="submit" class="btn-primary">Add to Pipeline</button>
-          </div>
-        </form>
-      </div>
-    ` : ''}
+    ${$.showForm ? formHTML() : ''}
 
-    <div style="background:#141211;border:1px solid #292524;border-radius:14px;overflow:hidden">
-      <div style="padding:14px 20px;border-bottom:1px solid #1C1917;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input type="text" placeholder="Search athletes..." value="${esc(S.search)}"
-          oninput="window.__ap.setSearch(this.value)"
-          class="field" style="flex:1;min-width:160px;padding:7px 12px" />
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          ${['All', ...STATUSES].map(f => `
-            <button onclick="window.__ap.setFilter('${f}')" class="pill-filter${S.filter===f?' active':''}">
-              ${f !== 'All' ? `<span class="s-dot ${DOT_CLASS[f]}" style="width:7px;height:7px"></span>` : ''}
-              ${f}
-            </button>
-          `).join('')}
+    <div class="card" style="overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" placeholder="Search…" value="${esc($.search)}" oninput="A.search(this.value)"
+          class="field" style="flex:1;min-width:140px;padding:8px 12px;font-size:13px" />
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${['All',...STATUSES].map(f=>`
+            <button onclick="A.filter('${f}')" class="pill${$.filter===f?' on':''}">
+              ${f!=='All'?`<span class="dot ${DOT[f]}" style="width:6px;height:6px"></span>`:''}${f==='Follow Up'?'Follow Up':f}
+            </button>`).join('')}
         </div>
       </div>
-      <div style="overflow-x:auto">
+
+      <!-- Desktop table -->
+      <div class="desktop-only" style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse">
           <thead>
-            <tr style="background:#111010">
-              <th class="tbl-head" style="text-align:left">Athlete</th>
-              <th class="tbl-head" style="text-align:left">High School</th>
-              <th class="tbl-head" style="text-align:left">Committed College</th>
-              <th class="tbl-head" style="text-align:left">Status</th>
-              <th class="tbl-head" style="text-align:left">Date</th>
-              <th class="tbl-head"></th>
+            <tr style="background:rgba(15,14,13,0.8)">
+              <th class="tbl-th">Athlete</th>
+              <th class="tbl-th">High School</th>
+              <th class="tbl-th">College</th>
+              <th class="tbl-th">Status</th>
+              <th class="tbl-th">Price</th>
+              <th class="tbl-th">Date</th>
+              <th class="tbl-th"></th>
             </tr>
           </thead>
           <tbody>
-            ${list.length === 0 ? `<tr><td colspan="6" style="padding:48px;text-align:center;color:#44403C;font-size:13px">No athletes found. Add your first lead!</td></tr>` : ''}
-            ${list.map(l => `
-              <tr class="row-hover">
-                <td class="tbl-cell">
-                  <div style="font-weight:500;color:#E7E5E4;font-size:13px">${esc(l.name)}</div>
-                  ${l.ig ? `<div style="color:#57534E;font-size:11px;margin-top:1px">${esc(l.ig)}</div>` : ''}
+            ${list.length===0?`<tr><td colspan="7" style="padding:48px;text-align:center;color:var(--dim);font-size:13px">No athletes yet — hit + Add Athlete to start.</td></tr>`:''}
+            ${list.map(l=>`
+              <tr class="tbl-row">
+                <td class="tbl-td">
+                  <div style="font-weight:500;color:var(--text)">${esc(l.name)}</div>
+                  ${l.ig?`<div style="font-size:11px;color:var(--dim)">${esc(l.ig)}</div>`:''}
                 </td>
-                <td class="tbl-cell" style="color:#78716C;font-size:12px">${esc(l.school||'—')}</td>
-                <td class="tbl-cell" style="color:#78716C;font-size:12px">${esc(l.college||'—')}</td>
-                <td class="tbl-cell">
+                <td class="tbl-td" style="color:var(--muted);font-size:12px">${esc(l.school||'—')}</td>
+                <td class="tbl-td" style="color:var(--muted);font-size:12px">${esc(l.college||'—')}</td>
+                <td class="tbl-td">
                   <div style="display:flex;align-items:center;gap:7px">
-                    <span class="s-dot ${DOT_CLASS[l.status]||'s-dot-sent'}"></span>
-                    <select onchange="window.__ap.updateStatus('${l.id}', this.value)"
-                      style="background:transparent;border:none;color:#A8A29E;font-size:12px;cursor:pointer;font-family:Geist,sans-serif;padding:0;outline:none">
-                      ${STATUSES.map(st => `<option value="${st}" ${st===l.status?'selected':''} style="background:#1A1816;color:#E7E5E4">${st}</option>`).join('')}
+                    <span class="dot ${DOT[l.status]||'dot-sent'}"></span>
+                    <select onchange="A.setStatus('${l.id}',this.value)"
+                      style="background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:Geist,sans-serif;outline:none;padding:0;-webkit-appearance:none">
+                      ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:#1A1816;color:var(--text)">${st}</option>`).join('')}
                     </select>
                   </div>
                 </td>
-                <td class="tbl-cell num" style="color:#57534E;font-size:11px">${fmtDate(l.date||l.created_at)}</td>
-                <td class="tbl-cell" style="text-align:right">
-                  <button onclick="window.__ap.deleteLead('${l.id}')" style="background:none;border:none;color:#3D3836;font-size:18px;cursor:pointer;transition:color 0.15s;line-height:1" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#3D3836'">×</button>
+                <td class="tbl-td">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <span style="color:var(--dim);font-size:12px">$</span>
+                    <input type="number" min="0" value="${l.price||''}" placeholder="0"
+                      onchange="A.setPrice('${l.id}',this.value)"
+                      style="background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--green);font-size:13px;font-weight:600;font-family:Geist,sans-serif;outline:none;width:56px;padding:2px 0;font-variant-numeric:tabular-nums" />
+                  </div>
+                </td>
+                <td class="tbl-td num" style="color:var(--dim);font-size:11px">${fmt(l.date||l.created_at)}</td>
+                <td class="tbl-td" style="text-align:right">
+                  <button class="btn btn-danger" onclick="A.del('${l.id}')">×</button>
                 </td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       </div>
-    </div>
-  </div>`;
-}
 
-// ─── Media Vault ──────────────────────────────────────────────────────────────
-function renderVault() {
-  return `<div class="fade-in">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid #1C1917">
-      <div>
-        <h2 class="serif" style="font-size:28px;font-weight:300;color:white;letter-spacing:-0.02em;margin:0">Media Vault</h2>
-        <p style="color:#57534E;font-size:12px;margin:5px 0 0">Your complete work portfolio — upload, display, share.</p>
-      </div>
-      <button class="btn-primary" onclick="window.__ap.openModal()">+ Upload Assets</button>
-    </div>
-
-    ${S.gallery.length === 0 ? `
-      <div onclick="window.__ap.openModal()" style="border:2px dashed #292524;border-radius:18px;padding:64px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='#44403C'" onmouseout="this.style.borderColor='#292524'">
-        <div style="font-size:40px;margin-bottom:12px;opacity:0.4">📁</div>
-        <div style="color:#57534E;font-size:14px;margin-bottom:6px">Your vault is empty</div>
-        <div style="color:#3B82F6;font-size:13px">Upload your first highlight →</div>
-      </div>
-    ` : `
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
-        ${S.gallery.map((item, i) => `
-          <div style="background:#141211;border:1px solid #292524;border-radius:14px;overflow:hidden;transition:border-color 0.2s" class="group" onmouseover="this.style.borderColor='rgba(37,99,235,0.4)'" onmouseout="this.style.borderColor='#292524'">
-            <div style="aspect-ratio:16/9;background:#111010;overflow:hidden;position:relative">
-              <img src="${esc(item.url)}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s"
-                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"
-                onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#3D3836;font-size:11px\\'>Preview unavailable</div>'"
-                alt="${esc(item.title)}">
-              ${item.category ? `<span style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.1);color:#60A5FA;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:3px 8px;border-radius:5px">${esc(item.category)}</span>` : ''}
-            </div>
-            <div style="padding:14px">
-              <div style="font-weight:500;color:#E7E5E4;font-size:13px;margin-bottom:10px">${esc(item.title)}</div>
-              <div style="display:flex;gap:6px">
-                <button onclick="window.__ap.downloadItem(${i})" style="flex:1;font-size:11px;color:#78716C;border:1px solid #292524;background:transparent;padding:6px 0;border-radius:8px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.color='#E7E5E4';this.style.borderColor='#44403C'" onmouseout="this.style.color='#78716C';this.style.borderColor='#292524'">↓ Download</button>
-                ${!item.isLocal ? `<button onclick="window.__ap.copyLink(${i})" id="cp-${i}" style="flex:1;font-size:11px;color:#78716C;border:1px solid #292524;background:transparent;padding:6px 0;border-radius:8px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.color='#E7E5E4'" onmouseout="this.style.color='#78716C'">⎘ Copy</button>` : ''}
-                <button onclick="window.__ap.deleteItem(${i})" style="font-size:13px;color:#3D3836;border:1px solid #292524;background:transparent;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#3D3836'">×</button>
+      <!-- Mobile cards -->
+      <div style="display:none" class="mobile-list" id="mobile-list">
+        ${list.length===0?`<div style="padding:40px;text-align:center;color:var(--dim);font-size:13px">No athletes — tap + Add Athlete.</div>`:''}
+        ${list.map(l=>`
+          <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+              <div>
+                <div style="font-weight:600;color:var(--text);font-size:14px">${esc(l.name)}</div>
+                ${l.ig?`<div style="font-size:11px;color:var(--dim);margin-top:1px">${esc(l.ig)}</div>`:''}
               </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:var(--green);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums">$${l.price||'—'}</span>
+                <button class="btn btn-danger" onclick="A.del('${l.id}')">×</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span class="dot ${DOT[l.status]||'dot-sent'}"></span>
+              <select onchange="A.setStatus('${l.id}',this.value)"
+                style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;cursor:pointer;font-family:Geist,sans-serif;border-radius:7px;padding:4px 8px;outline:none">
+                ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:#1A1816">${st}</option>`).join('')}
+              </select>
+              ${l.school?`<span style="font-size:11px;color:var(--dim)">${esc(l.school)}</span>`:''}
+              <span style="font-size:11px;color:var(--dim);margin-left:auto">${fmt(l.date||l.created_at)}</span>
             </div>
           </div>
         `).join('')}
       </div>
-    `}
-  </div>`;
-}
-
-// ─── Add Asset Modal ──────────────────────────────────────────────────────────
-function renderModal() {
-  return `
-    <div class="modal-overlay" onclick="if(event.target===this)window.__ap.closeModal()">
-      <div class="modal-box fade-in">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
-          <div style="font-size:16px;font-weight:600;color:white">Add to Media Vault</div>
-          <button onclick="window.__ap.closeModal()" style="background:none;border:none;color:#57534E;font-size:22px;cursor:pointer;line-height:1">×</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div>
-            <label style="font-size:11px;color:#78716C;display:block;margin-bottom:6px;font-weight:500">Asset Title</label>
-            <input id="v-title" placeholder="e.g. Senior Year Highlights" class="field" />
-          </div>
-          <div>
-            <label style="font-size:11px;color:#78716C;display:block;margin-bottom:6px;font-weight:500">Category / Sport</label>
-            <input id="v-cat" placeholder="Football, Basketball, Baseball…" class="field" />
-          </div>
-          <div>
-            <label style="font-size:11px;color:#78716C;display:block;margin-bottom:6px;font-weight:500">Upload Files (images or video thumbnails)</label>
-            <input id="vault-file-input" type="file" accept="image/*" multiple
-              style="width:100%;background:#1A1816;border:1px solid #292524;padding:10px 12px;border-radius:10px;font-size:12px;color:#A8A29E;cursor:pointer" />
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;color:#44403C;font-size:11px">
-            <div style="flex:1;height:1px;background:#292524"></div> or paste a URL <div style="flex:1;height:1px;background:#292524"></div>
-          </div>
-          <input id="v-url" placeholder="https://..." class="field" />
-        </div>
-        <div style="display:flex;gap:10px;margin-top:22px">
-          <button onclick="window.__ap.closeModal()" class="btn-ghost" style="flex:1">Cancel</button>
-          <button onclick="window.__ap.submitVault()" class="btn-primary" style="flex:1;padding:10px">Add to Vault</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ─── Metrics View ─────────────────────────────────────────────────────────────
-function renderMetrics() {
-  const logs = S.analytics;
-  const total = logs.reduce((a, l) => a + (Math.max(0, l.views||0)), 0);
-  const avg   = logs.length ? Math.round(total / logs.length) : 0;
-  const max   = Math.max(...logs.map(l => l.views||0), 1);
-
-  return `<div class="fade-in">
-    <div style="margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid #1C1917">
-      <h2 class="serif" style="font-size:28px;font-weight:300;color:white;letter-spacing:-0.02em;margin:0">Metrics Engine</h2>
-      <p style="color:#57534E;font-size:12px;margin:5px 0 0">Track views, reach, and content performance.</p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-      <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Total Views</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#3B82F6">${total.toLocaleString()}</div>
-      </div>
-      <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Posts Logged</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:white">${logs.length}</div>
-      </div>
-      <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Avg / Post</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#10B981">${avg.toLocaleString()}</div>
-      </div>
-    </div>
-
-    ${logs.length > 0 ? `
-      <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:20px;margin-bottom:20px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:16px">Performance Overview</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${logs.slice(0,10).map(log => {
-            const views = Math.max(0, log.views||0);
-            const pct = Math.round((views/max)*100);
-            return `<div style="display:flex;align-items:center;gap:10px">
-              <span class="num" style="color:#44403C;font-size:11px;width:36px;flex-shrink:0">${fmtDate(log.date)}</span>
-              <span style="color:#A8A29E;font-size:11px;width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(log.platform)}</span>
-              <div style="flex:1;background:#1A1816;border-radius:99px;height:4px;overflow:hidden">
-                <div style="height:100%;background:#3B82F6;border-radius:99px;width:${pct}%;transition:width 0.3s"></div>
-              </div>
-              <span class="num" style="color:#3B82F6;font-size:11px;width:64px;text-align:right;flex-shrink:0">${views.toLocaleString()}</span>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-    ` : ''}
-
-    <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:20px;margin-bottom:20px">
-      <div style="font-size:13px;font-weight:500;color:#E7E5E4;margin-bottom:14px">Log New Entry</div>
-      <form onsubmit="event.preventDefault();window.__ap.addMetric(this)" style="display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end">
-        <div>
-          <label style="font-size:11px;color:#57534E;display:block;margin-bottom:5px">Views Count</label>
-          <input name="views" type="number" min="0" required placeholder="e.g. 14200" class="field" style="padding:9px 12px" />
-        </div>
-        <div>
-          <label style="font-size:11px;color:#57534E;display:block;margin-bottom:5px">Platform</label>
-          <input name="platform" required placeholder="IG Reels, TikTok, YouTube Shorts…" class="field" style="padding:9px 12px" />
-        </div>
-        <button type="submit" class="btn-primary" style="padding:9px 18px">Log It</button>
-      </form>
-    </div>
-
-    <div style="background:#141211;border:1px solid #292524;border-radius:14px;overflow:hidden">
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="background:#111010">
-            <th class="tbl-head" style="text-align:left">Date</th>
-            <th class="tbl-head" style="text-align:left">Platform</th>
-            <th class="tbl-head" style="text-align:left">Views</th>
-            <th class="tbl-head"></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${logs.length === 0 ? `<tr><td colspan="4" style="padding:48px;text-align:center;color:#44403C;font-size:13px">No entries yet. Start logging your content's performance!</td></tr>` : ''}
-          ${logs.map((log, i) => `
-            <tr class="row-hover">
-              <td class="tbl-cell num" style="color:#57534E;font-size:12px">${fmtDate(log.date)}</td>
-              <td class="tbl-cell" style="color:#E7E5E4;font-size:13px;font-weight:500">${esc(log.platform)}</td>
-              <td class="tbl-cell num" style="color:#3B82F6;font-size:12px;font-weight:600">${Math.max(0,log.views||0).toLocaleString()}</td>
-              <td class="tbl-cell" style="text-align:right">
-                <button onclick="window.__ap.deleteMetric(${i})" style="background:none;border:none;color:#3D3836;font-size:18px;cursor:pointer;transition:color 0.15s" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#3D3836'">×</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
     </div>
   </div>`;
 }
 
-// ─── Revenue Hub ──────────────────────────────────────────────────────────────
+// ── Add / Edit Form ───────────────────────────────────────────────────────────
+function formHTML() {
+  const pkg = $.packages;
+  return `<div class="card" style="padding:20px;margin-bottom:16px;animation:fadeIn 0.15s">
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Add Athlete</div>
+    <form onsubmit="event.preventDefault();A.submitForm(this)" class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <input name="name" required placeholder="Athlete Name *" class="field" />
+      <input name="ig" placeholder="@instagram" class="field" />
+      <input name="school" placeholder="High School" class="field" />
+      <input name="college" placeholder="Committed College" class="field" />
+      <div style="display:flex;gap:8px;align-items:center">
+        <select name="sport" class="field" style="flex:1">
+          <option value="">Sport</option>
+          ${['Football','Basketball','Baseball','Soccer','Lacrosse','Wrestling','Track','Other'].map(s=>`<option value="${s}">${s}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="color:var(--dim);font-size:13px;flex-shrink:0">$</span>
+        <select name="price" class="field" style="flex:1">
+          <option value="">Price / Package</option>
+          ${pkg.map(p=>`<option value="${p.price}">${p.name} — $${p.price}</option>`).join('')}
+          <option value="custom">Custom…</option>
+        </select>
+        <input name="price_custom" type="number" min="0" placeholder="Custom $" class="field" style="display:none;width:90px" id="custom-price-field" />
+      </div>
+      <textarea name="notes" placeholder="Notes (optional)" class="field" style="grid-column:1/-1;min-height:64px;resize:vertical;font-size:13px"></textarea>
+      <div style="grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" onclick="A.closeForm()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-blue">Add to Pipeline</button>
+      </div>
+    </form>
+  </div>`;
+}
+
+// ── Revenue ───────────────────────────────────────────────────────────────────
 function renderRevenue() {
-  const st = computeStats();
-  const goalPct = S.settings.revenueGoal ? Math.min(100, Math.round((st.revenue/S.settings.revenueGoal)*100)) : 0;
-  const closedLeads = S.leads.filter(l => l.status === 'Closed');
+  const s = stats(), goalPct = $.settings.revenueGoal ? Math.min(100,Math.round(s.revenue/$.settings.revenueGoal*100)) : 0;
+  const closed = $.leads.filter(l => l.status==='Closed');
+  const byPkg = {};
+  $.leads.forEach(l => { const p = l.price||0; if (p > 0 && l.status==='Closed') byPkg[p] = (byPkg[p]||0)+1; });
 
-  return `<div class="fade-in">
-    <div style="margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid #1C1917">
-      <h2 class="serif" style="font-size:28px;font-weight:300;color:white;letter-spacing:-0.02em;margin:0">Revenue Hub</h2>
-      <p style="color:#57534E;font-size:12px;margin:5px 0 0">Packages, settings, and business growth tracking.</p>
+  return `<div class="fade">
+    <div class="section-header">
+      <div>
+        <h2 class="serif section-title">Revenue Hub</h2>
+        <p class="section-sub">Packages, goals, and booking history.</p>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-      <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Gross Revenue</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#10B981">$${st.revenue}</div>
+    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div class="stat-card" style="grid-column:1/2">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Total Revenue</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">$${s.revenue.toFixed(0)}</div>
+        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${goalPct}%;background:var(--green)"></div></div>
+        <div style="font-size:10px;color:var(--dim);margin-top:5px">${goalPct}% of $${$.settings.revenueGoal} goal</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Monthly Goal</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:white">${goalPct}%</div>
-        <div style="background:#1A1816;border-radius:99px;height:3px;margin-top:8px;overflow:hidden">
-          <div style="height:100%;background:#10B981;border-radius:99px;width:${goalPct}%;transition:width 0.5s"></div>
-        </div>
-        <div style="font-size:10px;color:#44403C;margin-top:5px">$${st.revenue} of $${S.settings.revenueGoal}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Clients Closed</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:white">${s.closed}</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.cr}% close rate</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#57534E;margin-bottom:8px">Avg per Client</div>
-        <div class="serif num" style="font-size:36px;font-weight:300;color:#3B82F6">$${S.settings.pricePerEdit}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Avg Per Client</div>
+        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--blue)">$${s.closed ? (s.revenue/s.closed).toFixed(0) : 0}</div>
       </div>
     </div>
 
     <!-- Settings -->
-    <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:22px;margin-bottom:20px">
-      <div style="font-size:13px;font-weight:500;color:#E7E5E4;margin-bottom:16px">Business Settings</div>
-      <form onsubmit="event.preventDefault();window.__ap.saveSettings(this)" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.05em">Goals</div>
+      <form onsubmit="event.preventDefault();A.saveSettings(this)" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
-          <label style="font-size:11px;color:#57534E;display:block;margin-bottom:5px">Daily DM Goal</label>
-          <input name="dailyGoal" type="number" min="1" value="${S.settings.dailyGoal}" class="field" />
+          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:5px">Daily DM Goal</label>
+          <input name="dailyGoal" type="number" min="1" value="${$.settings.dailyGoal}" class="field" />
         </div>
         <div>
-          <label style="font-size:11px;color:#57534E;display:block;margin-bottom:5px">Price per Edit ($)</label>
-          <input name="pricePerEdit" type="number" min="0" value="${S.settings.pricePerEdit}" class="field" />
-        </div>
-        <div>
-          <label style="font-size:11px;color:#57534E;display:block;margin-bottom:5px">Monthly Goal ($)</label>
-          <input name="revenueGoal" type="number" min="0" value="${S.settings.revenueGoal}" class="field" />
+          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:5px">Monthly Revenue Goal ($)</label>
+          <input name="revenueGoal" type="number" min="0" value="${$.settings.revenueGoal}" class="field" />
         </div>
         <div style="grid-column:1/-1;display:flex;justify-content:flex-end">
-          <button type="submit" class="btn-primary">Save Settings</button>
+          <button type="submit" class="btn btn-blue" style="padding:9px 16px;font-size:12px">Save Goals</button>
         </div>
       </form>
     </div>
 
     <!-- Packages -->
-    <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:22px;margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:500;color:#E7E5E4">Service Packages</div>
-        <button onclick="window.__ap.addPackage()" style="font-size:11px;color:#3B82F6;background:none;border:none;cursor:pointer">+ Add Package</button>
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.05em">Service Packages</div>
+        <button onclick="A.addPkg()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:Geist,sans-serif">+ Add</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
-        ${S.packages.map((pkg, i) => `
-          <div class="pkg-card" onmouseover="this.querySelector('.del-pkg').style.opacity='1'" onmouseout="this.querySelector('.del-pkg').style.opacity='0'">
-            <button class="del-pkg" onclick="window.__ap.deletePackage(${i})" style="position:absolute;top:10px;right:10px;background:none;border:none;color:#EF4444;font-size:16px;cursor:pointer;opacity:0;transition:opacity 0.15s;line-height:1">×</button>
-            <div style="font-size:11px;font-weight:700;color:#3B82F6;margin-bottom:3px">$${pkg.price}</div>
-            <div style="font-size:13px;font-weight:600;color:#E7E5E4;margin-bottom:4px">${esc(pkg.name)}</div>
-            <div style="font-size:11px;color:#57534E;line-height:1.4">${esc(pkg.desc)}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+        ${$.packages.map((p,i)=>`
+          <div class="pkg">
+            <button class="pkg-del" onclick="A.delPkg(${i})">×</button>
+            <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:2px">$${p.price}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${esc(p.name)}</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.4">${esc(p.desc)}</div>
           </div>
         `).join('')}
       </div>
     </div>
 
-    <!-- Closed Clients -->
-    ${closedLeads.length > 0 ? `
-      <div style="background:#141211;border:1px solid #292524;border-radius:14px;padding:22px">
-        <div style="font-size:13px;font-weight:500;color:#E7E5E4;margin-bottom:14px">Closed Clients</div>
-        <div>
-          ${closedLeads.map(l => `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1A1816">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="s-dot s-dot-closed"></span>
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:#E7E5E4">${esc(l.name)}</div>
-                  ${l.school ? `<div style="font-size:11px;color:#57534E">${esc(l.school)}</div>` : ''}
-                </div>
+    <!-- Closed clients -->
+    ${closed.length ? `
+      <div class="card" style="overflow:hidden">
+        <div style="padding:16px 18px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.05em">Closed Clients</div>
+        ${closed.map(l=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(36,33,32,0.5)">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="dot dot-closed"></span>
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--text)">${esc(l.name)}</div>
+                ${l.school?`<div style="font-size:11px;color:var(--dim)">${esc(l.school)}</div>`:''}
               </div>
-              <span class="num" style="font-size:13px;font-weight:600;color:#10B981">+$${S.settings.pricePerEdit}</span>
             </div>
-          `).join('')}
+            <div style="text-align:right">
+              <div class="num" style="font-size:14px;font-weight:700;color:var(--green)">+$${l.price||0}</div>
+              <div style="font-size:10px;color:var(--dim)">${fmt(l.date||l.created_at)}</div>
+            </div>
+          </div>
+        `).join('')}
+        <div style="padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--dim)">Total</span>
+          <span class="num" style="font-size:16px;font-weight:700;color:var(--green)">$${s.revenue.toFixed(0)}</span>
         </div>
       </div>
-    ` : ''}
+    ` : `<div class="card" style="padding:32px;text-align:center;color:var(--dim);font-size:13px">No closed deals yet — keep pushing the pipeline!</div>`}
   </div>`;
 }
 
-// ─── Actions ──────────────────────────────────────────────────────────────────
-async function addLead(data) {
-  const { error } = await supabase.from('leads').insert([{ user_id: S.user.id, ...data }]);
-  if (error) alert('Error adding lead: ' + error.message);
-  S.showForm = false;
-  loadAll();
+// ── Actions ───────────────────────────────────────────────────────────────────
+async function addLead(d) {
+  const { error } = await sb.from('leads').insert([{ user_id: $.user.id, ...d }]);
+  if (error) alert('Error: ' + error.message);
+  $.showForm = false;
+  load();
 }
 
-async function updateStatus(id, status) {
-  await supabase.from('leads').update({ status }).eq('id', id);
-  loadAll();
-}
-
-async function deleteLead(id) {
-  if (!confirm('Remove this athlete from the pipeline?')) return;
-  await supabase.from('leads').delete().eq('id', id);
-  loadAll();
-}
-
-window.__ap = {
-  login: async () => { S.authLoading = true; render(); await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }); },
-  logout: async () => { await supabase.auth.signOut(); S.leads = []; render(); },
-  setView: (v) => { S.view = v; render(); },
-  setSearch: (v) => { S.search = v; render(); },
-  setFilter: (v) => { S.filter = v; render(); },
-  toggleForm: () => { S.showForm = !S.showForm; render(); },
-  updateStatus, deleteLead,
+window.A = {
+  login: async () => { $.authLoading = true; render(); await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin+location.pathname } }); },
+  logout: async () => { await sb.auth.signOut(); $.leads=[]; render(); },
+  go: (v) => { $.view=v; $.showForm=false; render(); },
+  search: (v) => { $.search=v; render(); },
+  filter: (v) => { $.filter=v; render(); },
+  openForm: () => { $.showForm=true; render(); },
+  closeForm: () => { $.showForm=false; render(); },
 
   submitForm(form) {
     const fd = new FormData(form);
-    const data = {};
-    for (const [k,v] of fd.entries()) data[k] = v.trim();
-    data.date = todayStr();
-    data.status = 'Sent';
-    if (data.name) addLead(data);
+    const d = {};
+    for (const [k,v] of fd.entries()) d[k] = v.trim();
+    const isCust = d.price === 'custom';
+    d.price = isCust ? parseFloat(d.price_custom)||0 : parseFloat(d.price)||0;
+    delete d.price_custom;
+    d.date = today(); d.status = 'Sent';
+    if (d.name) addLead(d);
   },
 
-  // Vault
-  openModal: () => { S.showModal = true; render(); },
-  closeModal: () => { S.showModal = false; window.__pendingFiles = null; render(); },
-
-  submitVault() {
-    const title = document.getElementById('v-title')?.value?.trim() || 'Untitled';
-    const cat   = document.getElementById('v-cat')?.value?.trim() || '';
-    const url   = document.getElementById('v-url')?.value?.trim();
-    const files = window.__pendingFiles;
-
-    if (files && files.length > 0) {
-      let done = 0;
-      Array.from(files).forEach((file, idx) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          S.gallery.push({ id: Date.now()+idx, title: files.length>1 ? `${title} ${idx+1}` : title, category: cat, url: e.target.result, isLocal: true, name: file.name });
-          done++;
-          if (done === files.length) {
-            lsSave('gallery', S.gallery);
-            S.showModal = false;
-            window.__pendingFiles = null;
-            render();
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    } else if (url) {
-      S.gallery.push({ id: Date.now(), title, category: cat, url, isLocal: false });
-      lsSave('gallery', S.gallery);
-      S.showModal = false;
-      render();
-    } else {
-      alert('Please upload a file or enter an image URL.');
-    }
+  setStatus: async (id, status) => {
+    await sb.from('leads').update({ status }).eq('id', id);
+    load();
+  },
+  setPrice: async (id, price) => {
+    await sb.from('leads').update({ price: parseFloat(price)||0 }).eq('id', id);
+    load();
+  },
+  del: async (id) => {
+    if (!confirm('Remove this athlete?')) return;
+    await sb.from('leads').delete().eq('id', id);
+    load();
   },
 
-  deleteItem(i) {
-    if (!confirm('Remove this asset from your vault?')) return;
-    S.gallery.splice(i, 1);
-    lsSave('gallery', S.gallery);
-    render();
-  },
-
-  downloadItem(i) {
-    const item = S.gallery[i];
-    if (!item) return;
-    const a = document.createElement('a');
-    a.href = item.url;
-    a.download = item.name || `${item.title}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  },
-
-  copyLink(i) {
-    const item = S.gallery[i];
-    if (!item || item.isLocal) return;
-    navigator.clipboard.writeText(item.url).then(() => {
-      const btn = document.getElementById(`cp-${i}`);
-      if (btn) { btn.textContent = '✓ Copied'; setTimeout(() => render(), 1500); }
-    });
-  },
-
-  // Metrics
-  addMetric(form) {
-    const fd = new FormData(form);
-    const views = Math.max(0, parseInt(fd.get('views')) || 0);
-    const platform = fd.get('platform').trim();
-    if (!platform) return;
-    S.analytics.unshift({ date: todayStr(), platform, views });
-    lsSave('analytics', S.analytics);
-    form.reset();
-    render();
-  },
-
-  deleteMetric(i) {
-    S.analytics.splice(i, 1);
-    lsSave('analytics', S.analytics);
-    render();
-  },
-
-  // Revenue
   saveSettings(form) {
     const fd = new FormData(form);
-    S.settings.dailyGoal   = Math.max(1, parseInt(fd.get('dailyGoal'))   || 10);
-    S.settings.pricePerEdit = Math.max(0, parseInt(fd.get('pricePerEdit'))|| 25);
-    S.settings.revenueGoal  = Math.max(0, parseInt(fd.get('revenueGoal')) || 500);
-    lsSave('settings', S.settings);
+    $.settings.dailyGoal   = Math.max(1, parseInt(fd.get('dailyGoal'))||10);
+    $.settings.revenueGoal = Math.max(0, parseInt(fd.get('revenueGoal'))||500);
+    ls('settings', $.settings);
     render();
   },
 
-  addPackage() {
-    const name  = prompt('Package name:');        if (!name) return;
-    const price = prompt('Price ($):');           if (!price) return;
-    const desc  = prompt('Short description:') || '';
-    S.packages.push({ id: Date.now(), name: name.trim(), price: parseInt(price)||0, desc: desc.trim() });
-    lsSave('packages', S.packages);
+  addPkg() {
+    const name  = prompt('Package name:');  if (!name) return;
+    const price = prompt('Price ($):');     if (!price) return;
+    const desc  = prompt('Description:') || '';
+    $.packages.push({ id: Date.now(), name:name.trim(), price:parseInt(price)||0, desc:desc.trim() });
+    ls('packages', $.packages);
     render();
   },
-
-  deletePackage(i) {
-    S.packages.splice(i, 1);
-    lsSave('packages', S.packages);
+  delPkg(i) {
+    $.packages.splice(i,1);
+    ls('packages', $.packages);
     render();
   }
 };
 
-init();
+// Handle custom price toggle
+document.addEventListener('change', e => {
+  if (e.target?.name === 'price') {
+    const cf = document.getElementById('custom-price-field');
+    if (cf) cf.style.display = e.target.value === 'custom' ? 'block' : 'none';
+  }
+});
+
+// Show mobile list on mobile
+function applyMobileLayout() {
+  const isMobile = window.innerWidth < 768;
+  const desktopTable = document.querySelector('.desktop-only');
+  const mobileList = document.getElementById('mobile-list');
+  if (desktopTable) desktopTable.style.display = isMobile ? 'none' : 'block';
+  if (mobileList) mobileList.style.display = isMobile ? 'block' : 'none';
+}
+window.addEventListener('resize', applyMobileLayout);
+document.addEventListener('DOMContentLoaded', applyMobileLayout);
+
+// Observe renders
+const obs = new MutationObserver(applyMobileLayout);
+obs.observe(document.getElementById('app'), { childList:true, subtree:true });
+
+boot();
+</script>
+
+<!-- SVG icons as functions -->
+<script>
+function pipeIcon(){ return `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`; }
+function revIcon(){ return `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`; }
 </script>
 </body>
 </html>
