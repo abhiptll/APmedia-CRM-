@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APmedia CRM</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { font-family: 'Geist', system-ui, sans-serif; background: #FAFAF9; color: #1F1F1F; }
+  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+  .ring-focus:focus { outline: none; border-color: #1F1F1F; }
+  select, input, textarea { font-family: inherit; }
+  .scroll-hide::-webkit-scrollbar { display: none; }
+  .row-hover:hover { background: #F5F5F4; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; display: inline-block; letter-spacing: 0.02em; }
+  .b-sent { background: #F3F4F6; color: #4B5563; }
+  .b-resp { background: #DBEAFE; color: #1E40AF; }
+  .b-foll { background: #FEF3C7; color: #92400E; }
+  .b-clos { background: #D1FAE5; color: #065F46; }
+  .b-ni   { background: #FEE2E2; color: #991B1B; }
+  .fade-in { animation: fade 0.25s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  .logo-dot { display: inline-block; width: 7px; height: 7px; background: #DC2626; border-radius: 999px; vertical-align: middle; margin: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<div id="app" class="min-h-screen"></div>
+
+<script type="module">
+const STATUSES = ['Sent', 'Responded', 'Follow Up', 'Closed', 'Not Interested'];
+const STATUS_CLASS = { 'Sent':'b-sent','Responded':'b-resp','Follow Up':'b-foll','Closed':'b-clos','Not Interested':'b-ni' };
+
+// --- AUTOMATICALLY CONFIGURED API DETAILS ---
+const SUPABASE_URL = "https://nyawnrewrjsmmqmkkdig.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let state = {
+  user: null,
+  leads: [],
+  settings: { dailyGoal: 10, pricePerEdit: 25, revenueGoal: 500 },
+  filter: 'All',
+  search: '',
+  sort: 'date-new',
+  showForm: false,
+  authLoading: false,
+  authMessage: ''
+};
+
+// Check authentication state on initialization
+async function initAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  state.user = session ? session.user : null;
+  
+  // Listen for changes in authentication (e.g. clicking the magic link)
+  supabase.auth.onAuthStateChange((_event, session) => {
+    state.user = session ? session.user : null;
+    if (state.user) {
+      loadData();
+    } else {
+      render();
+    }
+  });
+
+  if (state.user) {
+    loadData();
+  } else {
+    render();
+  }
+}
+
+// Load App Data from Supabase Database
+async function loadData() {
+  // 1. Fetch leads
+  const { data: leads, error } = await supabase
+    .from('leads')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!error && leads) state.leads = leads;
+
+  // 2. Load custom user configuration preferences locally
+  const localConfig = localStorage.getItem(`apmedia_settings_${state.user.id}`);
+  if (localConfig) {
+    state.settings = { ...state.settings, ...JSON.parse(localConfig) };
+  }
+  render();
+}
+
+// Helper formatting functions
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const fmtDate = (s) => { if (!s) return ''; const [y,m,d] = s.split('-'); return `${parseInt(m)}/${parseInt(d)}`; };
+const monthOf = (s) => s ? s.slice(0,7) : '';
+
+function stats() {
+  const total = state.leads.length;
+  const today = todayStr();
+  const thisMonth = today.slice(0,7);
+  const sentToday = state.leads.filter(l => l.date === today).length;
+  const responded = state.leads.filter(l => l.status === 'Responded' || l.status === 'Closed').length;
+  const closed = state.leads.filter(l => l.status === 'Closed').length;
+  const closedThisMonth = state.leads.filter(l => l.status === 'Closed' && monthOf(l.date) === thisMonth).length;
+  const revenue = closed * state.settings.pricePerEdit;
+  const revenueThisMonth = closedThisMonth * state.settings.pricePerEdit;
+  return {
+    total, sentToday, responded, closed, revenue, revenueThisMonth,
+    remaining: Math.max(0, state.settings.dailyGoal - sentToday),
+    responseRate: total ? Math.round((responded / total) * 100) : 0,
+    convRate: total ? Math.round((closed / total) * 100) : 0,
+  };
+}
+
+function processedLeads() {
+  let list = [...state.leads];
+  if (state.filter !== 'All') list = list.filter(l => l.status === state.filter);
+  if (state.search.trim()) {
+    const q = state.search.trim().toLowerCase();
+    list = list.filter(l =>
+      (l.name||'').toLowerCase().includes(q) ||
+      (l.school||'').toLowerCase().includes(q) ||
+      (l.college||'').toLowerCase().includes(q) ||
+      (l.sport||'').toLowerCase().includes(q) ||
+      (l.ig||'').toLowerCase().includes(q)
+    );
+  }
+  const sorters = {
+    'date-new': (a,b) => (b.date||'').localeCompare(a.date||''),
+    'date-old': (a,b) => (a.date||'').localeCompare(b.date||''),
+    'name-az':  (a,b) => (a.name||'').localeCompare(b.name||''),
+    'status':   (a,b) => STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status),
+    'school':   (a,b) => (a.school||'').localeCompare(b.school||''),
+  };
+  list.sort(sorters[state.sort] || sorters['date-new']);
+  return list;
+}
+
+// ---------- Supabase Database Action Requests ----------
+async function addLead(data) {
+  const { error } = await supabase.from('leads').insert([{
+    user_id: state.user.id,
+    ...data
+  }]);
+  if (error) alert('Error creating record: ' + error.message);
+  state.showForm = false;
+  loadData();
+}
+
+async function updateLead(id, patch) {
+  const { error } = await supabase.from('leads').update(patch).eq('id', id);
+  if (error) alert('Update error: ' + error.message);
+  loadData();
+}
+
+async function deleteLead(id) {
+  if (!confirm('Delete this lead permanently from your cloud database?')) return;
+  const { error } = await supabase.from('leads').delete().eq('id', id);
+  if (error) alert('Deletion error: ' + error.message);
+  loadData();
+}
+
+function setSetting(key, value) {
+  state.settings[key] = Math.max(0, parseInt(value) || 0);
+  localStorage.setItem(`apmedia_settings_${state.user.id}`, JSON.stringify(state.settings));
+  render();
+}
+
+// Authentication Logic
+async function handleLogin(email) {
+  state.authLoading = true;
+  state.authMessage = '';
+  render();
+  
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email,
+    options: {
+      emailRedirectTo: window.location.href,
+    }
+  });
+
+  state.authLoading = false;
+  if (error) {
+    state.authMessage = `❌ Error: ${error.message}`;
+  } else {
+    state.authMessage = '✨ Check your inbox! We sent a Magic Link to your email.';
+  }
+  render();
+}
+
+async function handleLogout() {
+  await supabase.auth.signOut();
+  state.leads = [];
+  render();
+}
+
+function exportCSV() {
+  const rows = [['Name','School','Sport','Committed To','IG Handle','Date DMd','Status','Notes']];
+  state.leads.forEach(l => rows.push([l.name, l.school, l.sport, l.college, l.ig, l.date, l.status, l.notes || '']));
+  const csv = rows.map(r => r.map(c => `"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `apmedia_leads_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- Core Interface Views ----------
+function render() {
+  const appContainer = document.getElementById('app');
+
+  // VIEW 1: Unauthenticated Login Form Interface
+  if (!state.user) {
+    appContainer.innerHTML = `
+      <div class="min-h-screen flex flex-col justify-center items-center px-6 bg-stone-50">
+        <div class="max-w-md w-full bg-white border border-neutral-200 rounded-2xl p-8 shadow-sm fade-in">
+          <div class="text-center mb-8">
+            <h1 class="serif text-4xl font-light tracking-tight mb-2">
+              <span class="logo-dot"></span>APmedia <span class="italic font-normal text-neutral-500">crm</span>
+            </h1>
+            <p class="text-sm text-neutral-500">Enter your email to receive an instant access Magic Link</p>
+          </div>
+          <form onsubmit="event.preventDefault(); window.__a.login(this.email.value);" class="space-y-4">
+            <div>
+              <input type="email" name="email" required placeholder="name@example.com" 
+                class="w-full px-4 py-3 text-sm bg-stone-50 border border-neutral-200 rounded-xl ring-focus" 
+                ${state.authLoading ? 'disabled' : ''} />
+            </div>
+            <button type="submit" 
+              class="w-full py-3 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition flex justify-center items-center"
+              ${state.authLoading ? 'disabled' : ''}>
+              ${state.authLoading ? 'Sending link...' : 'Send Magic Link'}
+            </button>
+          </form>
+          ${state.authMessage ? `<p class="mt-4 text-center text-xs text-neutral-600 font-medium">${state.authMessage}</p>` : ''}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // VIEW 2: Standard Logged In App Interface
+  const s = stats();
+  const list = processedLeads();
+  const dailyPct = Math.min(100, (s.sentToday / Math.max(1, state.settings.dailyGoal)) * 100);
+  const revPct = Math.min(100, (s.revenueThisMonth / Math.max(1, state.settings.revenueGoal)) * 100);
+
+  appContainer.innerHTML = `
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 py-10">
+      <header class="flex items-end justify-between mb-12 pb-6 border-b border-neutral-200">
+        <div>
+          <h1 class="serif text-4xl sm:text-5xl font-light tracking-tight">
+            <span class="logo-dot"></span>APmedia <span class="italic font-normal text-neutral-500">crm</span>
+          </h1>
+          <div class="flex items-center gap-3 mt-2">
+            <p class="text-sm text-neutral-500">Lead pipeline · Outreach tracking</p>
+            <span class="text-neutral-300 text-xs">•</span>
+            <button onclick="window.__a.logout()" class="text-xs text-red-500 hover:underline">Sign Out (${state.user.email})</button>
+          </div>
+        </div>
+        <button onclick="window.__a.toggleForm()" class="hidden sm:inline-flex text-sm px-5 py-2.5 bg-neutral-900 text-white rounded-full hover:bg-neutral-700 transition">+ New Lead</button>
+      </header>
+
+      <section class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white border border-neutral-200 rounded-2xl p-6">
+          <div class="flex items-baseline justify-between mb-3">
+            <h2 class="text-xs uppercase tracking-widest text-neutral-500 font-medium">Today's Lead Sending Progress</h2>
+            <div class="text-xs text-neutral-500">
+              Goal: <input type="number" value="${state.settings.dailyGoal}" onchange="window.__a.setSetting('dailyGoal', this.value)"
+                class="w-12 text-right num bg-transparent border-b border-neutral-300 ring-focus" />
+            </div>
+          </div>
+          <div class="serif text-5xl font-light num leading-none">${s.sentToday}<span class="text-neutral-300 text-2xl"> / ${state.settings.dailyGoal}</span></div>
+          <div class="text-sm text-neutral-500 mt-2 mb-4">
+            ${s.remaining === 0
+              ? '<span class="text-emerald-700 font-medium">✓ Daily goal hit. Take a breath.</span>'
+              : `Send <span class="font-medium text-neutral-900 num">${s.remaining}</span> more to hit your goal.`}
+          </div>
+          <div class="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+            <div class="h-full bg-neutral-900 rounded-full transition-all duration-500" style="width: ${dailyPct}%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-neutral-200 rounded-2xl p-6">
+          <div class="flex items-baseline justify-between mb-3">
+            <h2 class="text-xs uppercase tracking-widest text-neutral-500 font-medium">This Month's Revenue</h2>
+            <div class="text-xs text-neutral-500">
+              Goal: $<input type="number" value="${state.settings.revenueGoal}" onchange="window.__a.setSetting('revenueGoal', this.value)"
+                class="w-16 text-right num bg-transparent border-b border-neutral-300 ring-focus" />
+            </div>
+          </div>
+          <div class="serif text-5xl font-light num leading-none text-emerald-700">$${s.revenueThisMonth}<span class="text-neutral-300 text-2xl"> / $${state.settings.revenueGoal}</span></div>
+          <div class="text-sm text-neutral-500 mt-2 mb-4">
+            ${revPct >= 100
+              ? '<span class="text-emerald-700 font-medium">✓ Monthly goal smashed.</span>'
+              : `<span class="num">$${state.settings.revenueGoal - s.revenueThisMonth}</span> to go this month.`}
+          </div>
+          <div class="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-600 rounded-full transition-all duration-500" style="width: ${revPct}%"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+        ${statCard('Total Sent', s.total, '')}
+        ${statCard('Responded', s.responded, `${s.responseRate}% rate`)}
+        ${statCard('Closed', s.closed, `${s.convRate}% conversion`)}
+        ${statCard('Total Revenue', `$${s.revenue}`, `$${state.settings.pricePerEdit}/edit`)}
+      </section>
+
+      <div class="sm:hidden mb-6">
+        <button onclick="window.__a.toggleForm()" class="w-full text-sm px-4 py-2.5 bg-neutral-900 text-white rounded-full">+ New Lead</button>
+      </div>
+
+      ${state.showForm ? formHTML() : ''}
+
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="serif text-2xl font-light">Leads <span class="text-neutral-300 num">${state.leads.length}</span></h2>
+        <button onclick="window.__a.exportCSV()" title="Export CSV"
+          class="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 transition px-3 py-1.5 border border-neutral-200 rounded-full hover:border-neutral-900">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3 mb-4">
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Search by name, school, college..." value="${escapeHtml(state.search)}"
+              oninput="window.__a.setSearch(this.value)"
+              class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-neutral-200 rounded-full ring-focus" />
+          </div>
+          <select onchange="window.__a.setSort(this.value)" class="text-sm px-3 py-2 bg-white border border-neutral-200 rounded-full ring-focus">
+            <option value="date-new" ${state.sort==='date-new'?'selected':''}>Newest first</option>
+            <option value="date-old" ${state.sort==='date-old'?'selected':''}>Oldest first</option>
+            <option value="name-az"  ${state.sort==='name-az'?'selected':''}>Name (A–Z)</option>
+            <option value="school"   ${state.sort==='school'?'selected':''}>School (A–Z)</option>
+            <option value="status"   ${state.sort==='status'?'selected':''}>Status</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1 overflow-x-auto scroll-hide -mx-2 px-2">
+          ${['All', ...STATUSES].map(f => `
+            <button onclick="window.__a.setFilter('${f}')"
+              class="text-sm px-3 py-1.5 rounded-full whitespace-nowrap transition ${state.filter === f ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100'}">
+              ${f}${f !== 'All' ? ` <span class="num text-xs opacity-60">${state.leads.filter(l=>l.status===f).length}</span>` : ''}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <section class="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+        ${list.length === 0 ? emptyState() : `
+          <div class="overflow-x-auto scroll-hide">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs uppercase tracking-wider text-neutral-500 border-b border-neutral-100">
+                  <th class="text-left font-medium px-5 py-3">Athlete</th>
+                  <th class="text-left font-medium px-5 py-3 hidden sm:table-cell">Committed To</th>
+                  <th class="text-left font-medium px-5 py-3 hidden md:table-cell">Sport</th>
+                  <th class="text-left font-medium px-5 py-3 num">Date</th>
+                  <th class="text-left font-medium px-5 py-3">Status</th>
+                  <th class="px-3 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${list.map(l => `
+                  <tr class="border-b border-neutral-100 row-hover transition fade-in">
+                    <td class="px-5 py-4">
+                      <div class="font-medium">${escapeHtml(l.name)}</div>
+                      <div class="text-xs text-neutral-500">${escapeHtml(l.school || '')} ${l.ig ? `· ${escapeHtml(l.ig)}` : ''}</div>
+                    </td>
+                    <td class="px-5 py-4 hidden sm:table-cell text-neutral-700">${escapeHtml(l.college || '—')}</td>
+                    <td class="px-5 py-4 hidden md:table-cell text-neutral-700">${escapeHtml(l.sport || '—')}</td>
+                    <td class="px-5 py-4 num text-neutral-700">${fmtDate(l.date)}</td>
+                    <td class="px-5 py-4">
+                      <select onchange="window.__a.updateLead('${l.id}', { status: this.value })"
+                        class="badge ${STATUS_CLASS[l.status]} border-0 ring-focus cursor-pointer appearance-none pr-2">
+                        ${STATUSES.map(st => `<option ${st===l.status?'selected':''}>${st}</option>`).join('')}
+                      </select>
+                      ${l.notes ? `<div class="text-xs text-neutral-500 mt-1.5 italic">"${escapeHtml(l.notes)}"</div>` : ''}
+                    </td>
+                    <td class="px-3 py-4 text-right">
+                      <button onclick="window.__a.deleteLead('${l.id}')" class="text-neutral-300 hover:text-red-600 transition text-lg leading-none">×</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
+
+      <details class="mt-8 text-sm">
+        <summary class="text-neutral-500 hover:text-neutral-900 transition inline-flex items-center gap-2">
+          <span>Settings</span><span class="text-xs">▾</span>
+        </summary>
+        <div class="mt-4 p-5 bg-white border border-neutral-200 rounded-2xl flex flex-wrap gap-6">
+          <label class="block">
+            <span class="text-xs text-neutral-500 uppercase tracking-wider">Price per edit</span>
+            <div class="flex items-center mt-1">
+              <span class="text-neutral-400 mr-1">$</span>
+              <input type="number" value="${state.settings.pricePerEdit}" onchange="window.__a.setSetting('pricePerEdit', this.value)"
+                class="w-20 num bg-transparent border-b border-neutral-300 ring-focus py-1" />
+            </div>
+          </label>
+          <label class="block">
+            <span class="text-xs text-neutral-500 uppercase tracking-wider">Daily DM goal</span>
+            <input type="number" value="${state.settings.dailyGoal}" onchange="window.__a.setSetting('dailyGoal', this.value)"
+              class="block w-20 num bg-transparent border-b border-neutral-300 ring-focus py-1 mt-1" />
+          </label>
+          <label class="block">
+            <span class="text-xs text-neutral-500 uppercase tracking-wider">Monthly revenue goal</span>
+            <div class="flex items-center mt-1">
+              <span class="text-neutral-400 mr-1">$</span>
+              <input type="number" value="${state.settings.revenueGoal}" onchange="window.__a.setSetting('revenueGoal', this.value)"
+                class="w-24 num bg-transparent border-b border-neutral-300 ring-focus py-1" />
+            </div>
+          </label>
+        </div>
+      </details>
+
+      <p class="text-xs text-neutral-400 mt-8 text-center">Syncing Realtime via Supabase Cloud Database · APmedia CRM</p>
+    </div>
+  `;
+}
+
+function statCard(label, value, sub) {
+  return `
+    <div class="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
+      <div class="text-xs uppercase tracking-wider text-neutral-500 mb-2">${label}</div>
+      <div class="serif text-3xl font-light num">${value}</div>
+      ${sub ? `<div class="text-xs text-neutral-500 mt-1 num">${sub}</div>` : ''}
+    </div>
+  `;
+}
+
+function formHTML() {
+  return `
+    <div class="bg-white border border-neutral-200 rounded-2xl p-6 mb-6 fade-in shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="serif text-xl">New lead</h3>
+        <button onclick="window.__a.toggleForm()" class="text-neutral-400 hover:text-neutral-900 text-xl leading-none">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); window.__a.submitForm(this);" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="name" required placeholder="Name *" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus" />
+        <input name="ig" placeholder="@instagram" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus" />
+        <input name="school" placeholder="High school" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus" />
+        <input name="sport" placeholder="Sport" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus" />
+        <input name="college" placeholder="Committed to (college)" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus sm:col-span-2" />
+        <input name="date" type="date" value="${todayStr()}" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus num" />
+        <select name="status" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus">
+          ${STATUSES.map(s => `<option ${s==='Sent'?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <textarea name="notes" placeholder="Notes" rows="2" class="px-3 py-2 border border-neutral-200 rounded-lg ring-focus sm:col-span-2"></textarea>
+        <div class="sm:col-span-2 flex gap-2 justify-end mt-2">
+          <button type="button" onclick="window.__a.toggleForm()" class="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-sm bg-neutral-900 text-white rounded-full hover:bg-neutral-700">Add lead</button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function emptyState() {
+  const isFiltered = state.filter !== 'All' || state.search.trim();
+  return `
+    <div class="px-6 py-20 text-center">
+      <div class="serif text-2xl text-neutral-300 italic mb-2">${isFiltered ? 'No matches.' : 'No leads yet.'}</div>
+      <div class="text-sm text-neutral-500 mb-5">${isFiltered ? 'Try a different filter or search.' : 'Add your first athlete to start tracking.'}</div>
+      ${!isFiltered ? `<button onclick="window.__a.toggleForm()" class="text-sm px-5 py-2 bg-neutral-900 text-white rounded-full hover:bg-neutral-700">+ New Lead</button>` : ''}
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return (s || '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// ---------- Execution Actions Mapped Globally ----------
+window.__a = {
+  login: handleLogin,
+  logout: handleLogout,
+  exportCSV,
+  setSetting,
+  setFilter: (f) => { state.filter = f; render(); },
+  setSearch: (v) => { state.search = v; renderTableOnly(); },
+  setSort: (v) => { state.sort = v; render(); },
+  updateLead, deleteLead,
+  toggleForm: () => { state.showForm = !state.showForm; render(); },
+  submitForm: (form) => {
+    const fd = new FormData(form);
+    const data = {};
+    for (const [k, v] of fd.entries()) data[k] = v.trim();
+    if (!data.name) return;
+    addLead(data);
+  },
+};
+
+let searchDebounce;
+function renderTableOnly() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => render(), 150);
+}
+
+initAuth();
+</script>
+</body>
+</html>
