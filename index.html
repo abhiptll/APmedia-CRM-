@@ -571,7 +571,11 @@ let app = {
   filter: 'All',
   search: '',
   showForm: false,
-  confirmDel: null, // lead id pending delete confirm
+  confirmDel: null,
+  dmLead: null,
+  dmText: '',
+  dmVariant: 0,
+  dmLoading: false,
   authLoading: false,
 };
 
@@ -679,6 +683,7 @@ function render() {
       </div>
     </div>
     ${app.confirmDel ? confirmModal() : ''}
+    ${app.dmLead ? dmModal() : ''}
   `;
 }
 
@@ -864,7 +869,12 @@ function pipelineHTML(s, stale) {
             <td class="tbl-td num" style="color:var(--dim);font-size:11px;white-space:nowrap">
               ${fmtDate(l.date||l.created_at)}
             </td>
-            <td class="tbl-td" style="text-align:right">
+            <td class="tbl-td" style="text-align:right;white-space:nowrap">
+              <button onclick="A.openDM('${l.id}')" title="Generate DM"
+                style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);color:#93C5FD;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all 0.12s;margin-right:4px"
+                onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">
+                ✦ DM
+              </button>
               <button class="btn-icon" onclick="A.confirmDelete('${l.id}')">×</button>
             </td>
           </tr>`).join('')}
@@ -1069,6 +1079,117 @@ function confirmModal() {
   </div>`;
 }
 
+// ── DM GENERATOR MODAL ───────────────────────────────────────────────────────
+function dmModal() {
+  const l = app.dmLead;
+  const variants = ['First DM', 'Follow-Up', 'Commitment Post Reply'];
+  return `
+  <div class="modal-overlay" onclick="if(event.target===this)A.closeDM()">
+    <div class="dm-modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">✦ AI DM Generator</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${e(l.name)}${l.college ? ` · ${e(l.college)}` : ''}${l.sport ? ` · ${e(l.sport)}` : ''}</div>
+        </div>
+        <button class="btn-icon" onclick="A.closeDM()">×</button>
+      </div>
+
+      <!-- Variant selector -->
+      <div style="display:flex;gap:6px;margin-bottom:4px">
+        ${variants.map((v,i) => `
+          <button class="dm-variant-btn${app.dmVariant===i?' on':''}" onclick="A.setDMVariant(${i})">${v}</button>
+        `).join('')}
+      </div>
+
+      <!-- Output box -->
+      <div id="dm-output" class="dm-output ${app.dmLoading?'loading':''}">
+        ${app.dmLoading
+          ? `<div class="spinner"></div><span>Writing your DM…</span>`
+          : app.dmText
+            ? e(app.dmText)
+            : `<span style="color:var(--dim)">Hit Generate to create your personalized DM →</span>`
+        }
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-blue" onclick="A.generateDM()" ${app.dmLoading?'disabled':''} style="flex:1">
+          ${app.dmLoading ? 'Generating…' : '⚡ Generate'}
+        </button>
+        ${app.dmText ? `
+          <button id="copy-btn" onclick="A.copyDM()" class="btn btn-ghost" style="flex:1">
+            Copy DM
+          </button>
+        ` : ''}
+        ${app.dmText ? `
+          <button onclick="A.generateDM()" class="btn btn-ghost" title="Regenerate" style="padding:9px 12px">↺</button>
+        ` : ''}
+      </div>
+
+      ${app.dmText ? `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">After you send it →</div>
+          <button onclick="A.markSent('${l.id}')" style="font-size:12px;color:var(--green);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;transition:all 0.12s">
+            ✓ Mark as Sent & Close
+          </button>
+        </div>
+      ` : ''}
+    </div>
+  </div>`;
+}
+
+// ── AI DM GENERATION ─────────────────────────────────────────────────────────
+const DM_PROMPTS = {
+  0: (l) => `You are a sports media editor who films and edits highlight reels for high school athletes. Write a short, casual Instagram DM to send to ${l.name}${l.college ? `, who just committed to ${l.college}` : ''}${l.sport ? ` to play ${l.sport}` : ''}${l.school ? ` from ${l.school}` : ''}.
+
+The message should:
+- Sound like a real person, not a business pitch
+- Congratulate them on their commitment (if they have one)
+- Mention you saw their post or commitment
+- Briefly say you make highlight reels / commitment videos for athletes
+- Ask if they'd be interested
+- Be 3-4 sentences max, no hashtags, no emojis spam (1 max)
+- Sound genuine and personal, not copy-paste
+
+Just write the message itself, nothing else. No quotes around it.`,
+
+  1: (l) => `You are a sports media editor following up on an Instagram DM you sent to ${l.name}${l.college ? `, committed to ${l.college}` : ''}${l.sport ? ` (${l.sport})` : ''}. They haven't replied yet.
+
+Write a short, casual follow-up message that:
+- References that you reached out before
+- Is not pushy or desperate
+- Keeps it light and brief (2-3 sentences)
+- Gives them an easy way to respond
+- Sounds natural like a real person texting
+
+Just write the message itself, nothing else.`,
+
+  2: (l) => `You are a sports media editor replying to ${l.name}'s commitment announcement post on Instagram${l.college ? ` (committed to ${l.college})` : ''}${l.sport ? ` for ${l.sport}` : ''}.
+
+Write a comment or DM reply that:
+- Congratulates them genuinely and specifically
+- Naturally transitions into mentioning you make commitment videos / highlight reels
+- Asks if they'd want one
+- Is 2-3 sentences, sounds real not salesy
+- Feels like it belongs in their comments
+
+Just write the message, nothing else.`
+};
+
+async function callAI(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text || 'Error generating message. Try again.';
+}
+
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
 async function addLead(d) {
   const sbRow = {
@@ -1158,6 +1279,59 @@ window.A = {
     if (!confirm(`Remove "${app.packages[i]?.name}"?`)) return;
     app.packages.splice(i,1);
     lsSet('packages', app.packages);
+    render();
+  },
+
+  // ── DM Generator ──────────────────────────────────────────────────────
+  openDM(id) {
+    const l = app.leads.find(x => x.id === id);
+    if (!l) return;
+    app.dmLead = l;
+    app.dmText = '';
+    app.dmVariant = 0;
+    app.dmLoading = false;
+    render();
+  },
+  closeDM() {
+    app.dmLead = null;
+    app.dmText = '';
+    app.dmLoading = false;
+    render();
+  },
+  setDMVariant(i) {
+    app.dmVariant = i;
+    app.dmText = '';
+    render();
+  },
+  async generateDM() {
+    if (!app.dmLead) return;
+    app.dmLoading = true;
+    app.dmText = '';
+    render();
+    const prompt = DM_PROMPTS[app.dmVariant](app.dmLead);
+    app.dmText = await callAI(prompt);
+    app.dmLoading = false;
+    render();
+  },
+  copyDM() {
+    if (!app.dmText) return;
+    navigator.clipboard.writeText(app.dmText).then(() => {
+      const btn = document.getElementById('copy-btn');
+      if (btn) {
+        btn.textContent = '✓ Copied!';
+        btn.style.color = 'var(--green)';
+        btn.style.borderColor = 'rgba(16,185,129,0.3)';
+        setTimeout(() => render(), 1800);
+      }
+    });
+  },
+  markSent(id) {
+    // Mark lead as Sent and close modal
+    SB.from('leads').update({ status: 'Sent' }).eq('id', id);
+    const l = app.leads.find(x=>x.id===id);
+    if (l) l.status = 'Sent';
+    app.dmLead = null;
+    app.dmText = '';
     render();
   },
 };
