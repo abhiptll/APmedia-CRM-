@@ -40,7 +40,6 @@
 const STATUSES = ['Sent', 'Responded', 'Follow Up', 'Closed', 'Not Interested'];
 const STATUS_CLASS = { 'Sent':'b-sent','Responded':'b-resp','Follow Up':'b-foll','Closed':'b-clos','Not Interested':'b-ni' };
 
-// --- AUTOMATICALLY CONFIGURED API DETAILS ---
 const SUPABASE_URL = "https://nyawnrewrjsmmqmkkdig.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5";
 
@@ -58,12 +57,10 @@ let state = {
   authMessage: ''
 };
 
-// Check authentication state on initialization
 async function initAuth() {
   const { data: { session } } = await supabase.auth.getSession();
   state.user = session ? session.user : null;
   
-  // Listen for changes in authentication (e.g. clicking the magic link)
   supabase.auth.onAuthStateChange((_event, session) => {
     state.user = session ? session.user : null;
     if (state.user) {
@@ -80,9 +77,7 @@ async function initAuth() {
   }
 }
 
-// Load App Data from Supabase Database
 async function loadData() {
-  // 1. Fetch leads
   const { data: leads, error } = await supabase
     .from('leads')
     .select('*')
@@ -90,7 +85,6 @@ async function loadData() {
 
   if (!error && leads) state.leads = leads;
 
-  // 2. Load custom user configuration preferences locally
   const localConfig = localStorage.getItem(`apmedia_settings_${state.user.id}`);
   if (localConfig) {
     state.settings = { ...state.settings, ...JSON.parse(localConfig) };
@@ -98,7 +92,6 @@ async function loadData() {
   render();
 }
 
-// Helper formatting functions
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtDate = (s) => { if (!s) return ''; const [y,m,d] = s.split('-'); return `${parseInt(m)}/${parseInt(d)}`; };
 const monthOf = (s) => s ? s.slice(0,7) : '';
@@ -145,7 +138,6 @@ function processedLeads() {
   return list;
 }
 
-// ---------- Supabase Database Action Requests ----------
 async function addLead(data) {
   const { error } = await supabase.from('leads').insert([{
     user_id: state.user.id,
@@ -175,25 +167,37 @@ function setSetting(key, value) {
   render();
 }
 
-// Authentication Logic
-async function handleLogin(email) {
+// Seamless Password Login & Signup Strategy Switcher
+async function handlePasswordAuth(email, password) {
   state.authLoading = true;
   state.authMessage = '';
   render();
-  
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email,
-    options: {
-      emailRedirectTo: window.location.href,
-    }
+
+  // Try signing in
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password
   });
 
-  state.authLoading = false;
-  if (error) {
-    state.authMessage = `❌ Error: ${error.message}`;
-  } else {
-    state.authMessage = '✨ Check your inbox! We sent a Magic Link to your email.';
+  if (signInError) {
+    // If user doesn't exist yet, auto-register them seamlessly
+    if (signInError.message.includes("Invalid login credentials")) {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password
+      });
+
+      if (signUpError) {
+        state.authMessage = `❌ Error: ${signUpError.message}`;
+      } else {
+        state.authMessage = '✨ Account created successfully! Logging you in...';
+      }
+    } else {
+      state.authMessage = `❌ Error: ${signInError.message}`;
+    }
   }
+
+  state.authLoading = false;
   render();
 }
 
@@ -214,11 +218,9 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-// ---------- Core Interface Views ----------
 function render() {
   const appContainer = document.getElementById('app');
 
-  // VIEW 1: Unauthenticated Login Form Interface
   if (!state.user) {
     appContainer.innerHTML = `
       <div class="min-h-screen flex flex-col justify-center items-center px-6 bg-stone-50">
@@ -227,18 +229,21 @@ function render() {
             <h1 class="serif text-4xl font-light tracking-tight mb-2">
               <span class="logo-dot"></span>APmedia <span class="italic font-normal text-neutral-500">crm</span>
             </h1>
-            <p class="text-sm text-neutral-500">Enter your email to receive an instant access Magic Link</p>
+            <p class="text-sm text-neutral-500">Enter your email and password to access your secure database instantly.</p>
           </div>
-          <form onsubmit="event.preventDefault(); window.__a.login(this.email.value);" class="space-y-4">
+          <form onsubmit="event.preventDefault(); window.__a.authenticate(this.email.value, this.password.value);" class="space-y-4">
             <div>
-              <input type="email" name="email" required placeholder="name@example.com" 
+              <input type="email" name="email" required placeholder="Email address" 
+                class="w-full px-4 py-3 text-sm bg-stone-50 border border-neutral-200 rounded-xl ring-focus mb-3" 
+                ${state.authLoading ? 'disabled' : ''} />
+              <input type="password" name="password" required placeholder="Password" 
                 class="w-full px-4 py-3 text-sm bg-stone-50 border border-neutral-200 rounded-xl ring-focus" 
                 ${state.authLoading ? 'disabled' : ''} />
             </div>
             <button type="submit" 
               class="w-full py-3 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition flex justify-center items-center"
               ${state.authLoading ? 'disabled' : ''}>
-              ${state.authLoading ? 'Sending link...' : 'Send Magic Link'}
+              ${state.authLoading ? 'Authenticating...' : 'Sign In / Register'}
             </button>
           </form>
           ${state.authMessage ? `<p class="mt-4 text-center text-xs text-neutral-600 font-medium">${state.authMessage}</p>` : ''}
@@ -248,7 +253,6 @@ function render() {
     return;
   }
 
-  // VIEW 2: Standard Logged In App Interface
   const s = stats();
   const list = processedLeads();
   const dailyPct = Math.min(100, (s.sentToday / Math.max(1, state.settings.dailyGoal)) * 100);
@@ -487,9 +491,8 @@ function escapeHtml(s) {
   return (s || '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
-// ---------- Execution Actions Mapped Globally ----------
 window.__a = {
-  login: handleLogin,
+  authenticate: handlePasswordAuth,
   logout: handleLogout,
   exportCSV,
   setSetting,
