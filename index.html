@@ -4,648 +4,1165 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0C0A09">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="APmedia">
+<meta name="theme-color" content="#0A0908">
 <title>APmedia Hub</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-  :root {
-    --bg: #0C0A09;
-    --surface: #141211;
-    --surface2: #1A1816;
-    --border: #242120;
-    --border2: #2E2B29;
-    --text: #E7E5E4;
-    --muted: #78716C;
-    --dim: #44403C;
-    --blue: #3B82F6;
-    --blue-dim: rgba(59,130,246,0.12);
-    --green: #10B981;
-    --amber: #F59E0B;
-    --red: #EF4444;
-  }
-  body { font-family: 'Geist', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100dvh; overscroll-behavior: none; }
-  .serif { font-family: 'Fraunces', serif; }
-  .num { font-variant-numeric: tabular-nums; }
-  
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+*,*::before,*::after{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;margin:0;padding:0}
 
-  /* Status dots */
-  .dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
-  .dot-sent     { background: #6B7280; width:9px; height:9px; }
-  .dot-responded{ background: var(--blue); width:9px; height:9px; box-shadow: 0 0 7px rgba(59,130,246,0.6); }
-  .dot-followup { background: var(--amber); width:9px; height:9px; box-shadow: 0 0 7px rgba(245,158,11,0.6); }
-  .dot-closed   { background: var(--green); width:9px; height:9px; box-shadow: 0 0 7px rgba(16,185,129,0.6); }
-  .dot-ni       { background: var(--red); width:9px; height:9px; box-shadow: 0 0 7px rgba(239,68,68,0.6); }
+:root {
+  --bg:       #0A0908;
+  --s1:       #111010;
+  --s2:       #181614;
+  --s3:       #1F1D1B;
+  --border:   #252220;
+  --border2:  #302C2A;
+  --text:     #EAE7E4;
+  --muted:    #7C756F;
+  --dim:      #3D3936;
+  --blue:     #3B82F6;
+  --blue2:    #1D4ED8;
+  --glow-b:   rgba(59,130,246,0.35);
+  --green:    #10B981;
+  --glow-g:   rgba(16,185,129,0.35);
+  --amber:    #F59E0B;
+  --red:      #EF4444;
+  --sidebar:  220px;
+  --safe-t:   env(safe-area-inset-top, 0px);
+  --safe-b:   env(safe-area-inset-bottom, 0px);
+}
 
-  /* Inputs */
-  .field {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px;
-    padding: 10px 14px; border-radius: 10px; width: 100%; transition: border-color 0.15s;
-  }
-  .field::placeholder { color: var(--dim); }
-  .field:focus { outline: none; border-color: var(--blue); }
-  select.field { cursor: pointer; }
+html,body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; overflow: hidden; }
+.serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+.num   { font-variant-numeric: tabular-nums; font-feature-settings:'tnum'; }
 
-  /* Buttons */
-  .btn { font-family: 'Geist', sans-serif; border: none; cursor: pointer; border-radius: 10px; font-weight: 500; transition: all 0.15s; }
-  .btn-blue { background: var(--blue); color: white; padding: 10px 18px; font-size: 13px; }
-  .btn-blue:hover { background: #2563EB; }
-  .btn-ghost { background: transparent; color: var(--muted); padding: 9px 14px; font-size: 13px; border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
-  .btn-danger { background: transparent; color: var(--dim); font-size: 18px; padding: 2px 8px; border-radius: 6px; line-height: 1; }
-  .btn-danger:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+/* ── SCROLLBARS ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.noscroll::-webkit-scrollbar { display: none; }
 
-  /* Cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+/* ── APP SHELL ──────────────────────────────────────────────────────── */
+#shell {
+  display: flex;
+  height: 100dvh;
+  padding-top: var(--safe-t);
+}
 
-  /* Table */
-  .tbl-th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); font-weight: 600; padding: 10px 16px; text-align: left; }
-  .tbl-td { padding: 13px 16px; border-bottom: 1px solid rgba(36,33,32,0.7); font-size: 13px; }
-  .tbl-row:hover { background: rgba(26,24,22,0.7); }
-  .tbl-row:last-child td { border-bottom: none; }
+/* ── SIDEBAR ────────────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar);
+  min-width: var(--sidebar);
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 14px 20px;
+  gap: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.wordmark {
+  padding: 0 8px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wordmark-dot {
+  width: 8px; height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--glow-b);
+  flex-shrink: 0;
+}
+.wordmark-text {
+  font-size: 19px;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.wordmark-text em { color: var(--dim); font-style: italic; }
 
-  /* Modal */
-  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 200; display: flex; align-items: flex-end; justify-content: center; padding: 0; backdrop-filter: blur(6px); }
-  @media (min-width: 640px) { .modal-bg { align-items: center; padding: 24px; } }
-  .modal-box {
-    background: var(--surface); border: 1px solid var(--border2); border-radius: 20px 20px 0 0;
-    padding: 24px; width: 100%; max-height: 92dvh; overflow-y: auto;
-    animation: slideUp 0.2s ease-out;
-  }
-  @media (min-width: 640px) { .modal-box { border-radius: 18px; max-width: 480px; animation: fadeIn 0.15s; } }
-  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; display: block; }
+.nav-section-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  font-weight: 600;
+  padding: 0 10px;
+  margin: 20px 0 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: all 0.12s;
+  position: relative;
+}
+.nav-item:hover { color: var(--text); background: var(--s2); }
+.nav-item.on {
+  color: #93C5FD;
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.2);
+}
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--amber);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 2px 6px;
+  line-height: 1.4;
+}
 
-  /* Alert badge */
-  .alert-pill { background: rgba(120,53,15,0.2); border: 1px solid rgba(217,119,6,0.3); border-radius: 10px; padding: 12px 16px; }
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-email {
+  font-size: 11px;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
+  margin-bottom: 8px;
+}
+.signout-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; color: #7F1D1D; font-family: inherit;
+  padding: 0 4px;
+}
 
-  /* Pill filter */
-  .pill { font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--dim); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .pill:hover { color: var(--muted); border-color: var(--border2); }
-  .pill.on { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+/* ── MAIN ───────────────────────────────────────────────────────────── */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg);
+  padding: 36px 40px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
-  /* Desktop sidebar */
-  #sidebar { width: 210px; min-width: 210px; background: #0F0E0D; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 22px 14px; }
-  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border: 1px solid transparent; background: none; width: 100%; transition: all 0.15s; }
-  .nav-item:hover { color: var(--text); background: var(--surface); }
-  .nav-item.on { color: #60A5FA; background: var(--blue-dim); border-color: rgba(59,130,246,0.2); }
+/* ── PAGE HEADER ────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+.page-title {
+  font-size: 30px;
+  font-weight: 300;
+  color: white;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.page-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+}
 
-  /* Mobile bottom nav */
-  #bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: rgba(15,14,13,0.95); backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid var(--border); padding: 8px 0 max(8px, env(safe-area-inset-bottom)); }
-  .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--dim); cursor: pointer; background: none; border: none; padding: 6px 0; transition: color 0.15s; }
-  .bnav-item.on { color: #60A5FA; }
-  .bnav-item svg { width: 22px; height: 22px; }
+/* ── STAT CARDS ─────────────────────────────────────────────────────── */
+.stat-grid { display: grid; gap: 12px; margin-bottom: 22px; }
+.stat-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.stat-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.pbar { background: var(--s3); border-radius: 99px; height: 3px; margin-top: 10px; overflow: hidden; }
+.pbar-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
 
-  /* Main scroll area */
-  #main { flex: 1; overflow-y: auto; padding: 28px 32px; max-width: 1000px; }
+/* ── BUTTONS ────────────────────────────────────────────────────────── */
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-blue {
+  background: var(--blue);
+  color: white;
+  padding: 10px 18px;
+  font-size: 13px;
+  box-shadow: 0 0 20px rgba(59,130,246,0.25);
+}
+.btn-blue:hover { background: var(--blue2); box-shadow: 0 0 28px rgba(59,130,246,0.4); }
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  padding: 9px 14px;
+  font-size: 13px;
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { color: var(--text); border-color: #3D3936; }
+.btn-icon {
+  background: none; border: none; cursor: pointer;
+  color: var(--dim); font-size: 20px; line-height: 1;
+  padding: 3px 7px; border-radius: 7px; transition: all 0.12s;
+}
+.btn-icon:hover { color: var(--red); background: rgba(239,68,68,0.1); }
 
-  @media (max-width: 767px) {
-    #sidebar { display: none !important; }
-    #bottom-nav { display: flex; }
-    #main { padding: 16px 16px 88px; width: 100%; }
-    .stat-grid { grid-template-columns: 1fr 1fr !important; }
-    .form-grid { grid-template-columns: 1fr !important; }
-    .desktop-only { display: none !important; }
-  }
+/* ── STATUS DOTS ────────────────────────────────────────────────────── */
+.dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
+.dot-sent     { width:9px;height:9px;background:#6B7280; }
+.dot-responded{ width:9px;height:9px;background:var(--blue);box-shadow:0 0 8px var(--glow-b); }
+.dot-followup { width:9px;height:9px;background:var(--amber);box-shadow:0 0 8px rgba(245,158,11,0.5); }
+.dot-closed   { width:9px;height:9px;background:var(--green);box-shadow:0 0 8px var(--glow-g); }
+.dot-ni       { width:9px;height:9px;background:var(--red);box-shadow:0 0 8px rgba(239,68,68,0.4); }
 
-  .fade { animation: fadeIn 0.18s ease-out; }
+/* ── CARD / TABLE ───────────────────────────────────────────────────── */
+.card { background: var(--s1); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl-th {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  font-weight: 700;
+  padding: 11px 18px;
+  text-align: left;
+  background: rgba(15,14,13,0.7);
+  border-bottom: 1px solid var(--border);
+}
+.tbl-td { padding: 13px 18px; border-bottom: 1px solid rgba(37,34,32,0.6); vertical-align: middle; }
+.tbl-row:last-child .tbl-td { border-bottom: none; }
+.tbl-row { transition: background 0.1s; }
+.tbl-row:hover { background: rgba(24,22,20,0.8); }
 
-  /* Progress bar */
-  .pbar { background: var(--surface2); border-radius: 99px; height: 4px; overflow: hidden; }
-  .pbar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+/* ── FIELDS ─────────────────────────────────────────────────────────── */
+.field {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  width: 100%;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.field::placeholder { color: var(--dim); }
+.field:focus { outline: none; border-color: var(--blue); background: var(--s3); }
+textarea.field { resize: vertical; min-height: 70px; line-height: 1.5; }
+select.field { cursor: pointer; }
 
-  /* Package card */
-  .pkg { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; position: relative; }
-  .pkg:hover { border-color: var(--border2); }
-  .pkg-del { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; opacity: 0; transition: opacity 0.15s; padding: 0; line-height: 1; }
-  .pkg:hover .pkg-del { opacity: 1; }
-  .pkg-del:hover { color: var(--red); }
+/* ── ALERT BAR ──────────────────────────────────────────────────────── */
+.alert-bar {
+  background: linear-gradient(135deg, rgba(120,53,15,0.18), rgba(78,36,10,0.12));
+  border: 1px solid rgba(217,119,6,0.28);
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: fadeUp 0.2s ease-out;
+}
 
-  .section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-  .section-title { font-size: 26px; font-weight: 300; color: white; letter-spacing: -0.02em; margin: 0; }
-  .section-sub { color: var(--dim); font-size: 12px; margin: 4px 0 0; }
-  
-  input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+/* ── FILTER PILLS ───────────────────────────────────────────────────── */
+.pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.pill {
+  font-size: 11px; font-weight: 500;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--muted);
+  cursor: pointer; transition: all 0.12s;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'DM Sans', sans-serif;
+}
+.pill:hover { color: var(--text); border-color: var(--border2); }
+.pill.on { background: var(--s3); border-color: var(--border2); color: var(--text); }
+
+/* ── TOOLBAR ────────────────────────────────────────────────────────── */
+.toolbar {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: rgba(15,14,13,0.4);
+}
+
+/* ── FORM PANEL ─────────────────────────────────────────────────────── */
+.form-panel {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 18px;
+  animation: fadeUp 0.16s ease-out;
+}
+.form-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-full { grid-column: 1 / -1; }
+
+/* ── PACKAGE CARDS ──────────────────────────────────────────────────── */
+.pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
+.pkg-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 15px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.pkg-card:hover { border-color: var(--border2); }
+.pkg-del {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; color: var(--dim);
+  font-size: 16px; cursor: pointer; line-height: 1;
+  opacity: 0; transition: opacity 0.15s, color 0.15s;
+  padding: 0;
+}
+.pkg-card:hover .pkg-del { opacity: 1; }
+.pkg-del:hover { color: var(--red); }
+
+/* ── MODAL ──────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.modal-box {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%; max-width: 460px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  animation: scaleIn 0.18s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes scaleIn { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
+
+/* ── LOGIN ──────────────────────────────────────────────────────────── */
+.login-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 32px;
+}
+.login-card {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: 22px;
+  padding: 44px 40px;
+  width: 100%; max-width: 360px;
+  text-align: center;
+}
+.google-btn {
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: 13px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  margin-top: 28px;
+}
+.google-btn:hover { background: var(--s3); border-color: #3D3936; }
+
+/* ── SECTION CARD ───────────────────────────────────────────────────── */
+.section-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 16px;
+}
+.section-card-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── QUICK ACTIONS ──────────────────────────────────────────────────── */
+.quick-action {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+}
+.quick-action:hover { border-color: var(--border2); background: var(--s3); }
+.qa-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+.qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.qa-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── CLOSE CLIENT ROWS ──────────────────────────────────────────────── */
+.client-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(37,34,32,0.5);
+}
+.client-row:last-child { border-bottom: none; }
+
+/* ── PRICE INPUT ────────────────────────────────────────────────────── */
+.price-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border2);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  width: 60px;
+  padding: 2px 0;
+  transition: border-color 0.15s;
+}
+.price-input:focus { border-color: var(--green); }
+.price-input::placeholder { color: var(--dim); font-weight: 400; }
+
+/* ── STATUS SELECT ──────────────────────────────────────────────────── */
+.status-select {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  padding: 0;
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────────────── */
+.fade { animation: fadeUp 0.2s ease-out; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── INLINE EDIT ────────────────────────────────────────────────────── */
+.inline-edit {
+  background: transparent; border: none;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--muted); font-size: 12px;
+  outline: none; cursor: pointer;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+  padding: 0;
+}
+.inline-edit:focus { border-color: var(--dim); color: var(--text); }
+
+/* ── EMPTY STATE ────────────────────────────────────────────────────── */
+.empty {
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.empty-icon { font-size: 36px; opacity: 0.3; margin-bottom: 12px; }
+
+/* ── TAG ────────────────────────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 5px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tag-sport { background: rgba(59,130,246,0.12); color: #93C5FD; border: 1px solid rgba(59,130,246,0.2); }
 </style>
 </head>
 <body>
-<div id="app" style="display:flex;min-height:100dvh"></div>
+<div id="root"></div>
 
-<script type="module">
-const SB_URL = "https://nyawnrewrjsmmqmkkdig.supabase.co";
-const SB_KEY = "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5";
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+<script>
+// ── SUPABASE ─────────────────────────────────────────────────────────────────
+const { createClient } = window.supabase;
+const SB = createClient(
+  "https://nyawnrewrjsmmqmkkdig.supabase.co",
+  "sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5"
+);
 
 const STATUSES = ['Sent','Responded','Follow Up','Closed','Not Interested'];
-const DOT = { Sent:'dot-sent', Responded:'dot-responded', 'Follow Up':'dot-followup', Closed:'dot-closed', 'Not Interested':'dot-ni' };
+const DOT_MAP = {
+  'Sent':'dot-sent','Responded':'dot-responded',
+  'Follow Up':'dot-followup','Closed':'dot-closed','Not Interested':'dot-ni'
+};
+const SPORTS = ['Football','Basketball','Baseball','Soccer','Lacrosse','Wrestling','Track','Tennis','Volleyball','Other'];
 
-let $ = {
-  user: null, view: 'crm', leads: [],
-  packages: [ {id:1,name:'Highlight Reel',price:25,desc:'60-sec game highlight, 1 revision'}, {id:2,name:'Full Mixtape',price:75,desc:'3-5 min mixtape, music + graphics, 2 revisions'}, {id:3,name:'Social Pack',price:150,desc:'3× short clips + full highlight + covers'} ],
-  settings: { dailyGoal:10, revenueGoal:500 },
-  filter:'All', search:'', showForm:false, showModal:false, editId:null,
-  authLoading:false,
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let app = {
+  user: null,
+  view: 'pipeline',
+  leads: [],
+  settings: { dailyGoal: 10, revenueGoal: 500 },
+  packages: [
+    { id:1, name:'Highlight Reel', price:25,  desc:'60-sec game highlight, 1 revision' },
+    { id:2, name:'Full Mixtape',   price:75,  desc:'3–5 min mixtape, music + graphics, 2 revisions' },
+    { id:3, name:'Social Pack',    price:150, desc:'3× short clips + full highlight + story covers' },
+  ],
+  filter: 'All',
+  search: '',
+  showForm: false,
+  confirmDel: null, // lead id pending delete confirm
+  authLoading: false,
 };
 
-// ── Persist ──────────────────────────────────────────────────────────────────
-const lk = k => `ap_${k}_${$.user?.id}`;
-const ls = (k,v) => { if ($.user) localStorage.setItem(lk(k), JSON.stringify(v)); };
-const ll = (k,fb) => { if (!$.user) return fb; try { const v = localStorage.getItem(lk(k)); return v ? JSON.parse(v) : fb; } catch { return fb; } };
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
+const lk = k => `ap2_${k}_${app.user?.id}`;
+const lsSet = (k,v) => { try { if(app.user) localStorage.setItem(lk(k), JSON.stringify(v)); } catch{} };
+const lsGet = (k,fb) => { try { const v=localStorage.getItem(lk(k)); return v?JSON.parse(v):fb; } catch{ return fb; } };
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-async function boot() {
-  const { data: { session } } = await sb.auth.getSession();
-  $.user = session?.user ?? null;
-  sb.auth.onAuthStateChange((_,s) => { $.user = s?.user ?? null; $.user ? load() : render(); });
-  $.user ? load() : render();
+// Extra fields (price, sport, notes) keyed by Supabase lead id
+const exKey = () => `ap2_extra_${app.user?.id}`;
+const exLoad = () => { try{ return JSON.parse(localStorage.getItem(exKey())||'{}'); }catch{ return{}; } };
+const exSave = m => localStorage.setItem(exKey(), JSON.stringify(m));
+const exGet  = id => exLoad()[id] || {};
+const exSet  = (id, patch) => { const m=exLoad(); m[id]={...m[id],...patch}; exSave(m); };
+
+function mergeExtras(leads) {
+  const ex = exLoad();
+  return leads.map(l => ({ ...l, ...(ex[l.id]||{}) }));
 }
 
-async function load() {
-  const { data, error } = await sb.from('leads').select('*').order('created_at', { ascending: false });
-  if (!error && data) $.leads = data;
-  $.packages = ll('packages', $.packages);
-  $.settings = { ...$.settings, ...ll('settings', {}) };
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function boot() {
+  const { data:{ session } } = await SB.auth.getSession();
+  app.user = session?.user ?? null;
+  SB.auth.onAuthStateChange((_,s) => {
+    app.user = s?.user ?? null;
+    app.user ? loadAll() : render();
+  });
+  app.user ? loadAll() : render();
+}
+
+async function loadAll() {
+  const { data, error } = await SB.from('leads').select('*').order('created_at', { ascending: false });
+  if (!error && data) app.leads = mergeExtras(data);
+  app.packages = lsGet('packages', app.packages);
+  app.settings = { ...app.settings, ...lsGet('settings', {}) };
   render();
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 const today = () => new Date().toISOString().slice(0,10);
-const fmt = s => { if (!s) return ''; const [,m,d] = (s||'').slice(0,10).split('-'); return `${+m}/${+d}`; };
-const esc = s => (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const fmtDate = s => {
+  if (!s) return '';
+  const d = s.slice(0,10).split('-');
+  return `${parseInt(d[1])}/${parseInt(d[2])}`;
+};
+const e = s => (s||'').toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
 function stats() {
-  const all = $.leads, total = all.length, t = today();
-  const sentToday = all.filter(l => (l.date||'').startsWith(t)).length;
-  const responded = all.filter(l => ['Responded','Closed'].includes(l.status)).length;
-  const closed    = all.filter(l => l.status === 'Closed').length;
-  const revenue   = all.reduce((sum, l) => sum + (parseFloat(l.price)||0), 0);
-  return { total, sentToday, responded, closed, revenue,
-    rr: total ? Math.round(responded/total*100) : 0,
-    cr: total ? Math.round(closed/total*100) : 0,
-    remaining: Math.max(0, $.settings.dailyGoal - sentToday) };
+  const all = app.leads, n = all.length, t = today();
+  const sentToday = all.filter(l=>(l.date||'').startsWith(t)).length;
+  const responded = all.filter(l=>['Responded','Closed'].includes(l.status)).length;
+  const closed    = all.filter(l=>l.status==='Closed').length;
+  const revenue   = all.reduce((s,l)=>s+(parseFloat(l.price)||0), 0);
+  return {
+    n, sentToday, responded, closed, revenue,
+    rr: n ? Math.round(responded/n*100) : 0,
+    cr: n ? Math.round(closed/n*100) : 0,
+    goalPct: app.settings.revenueGoal ? Math.min(100, Math.round(revenue/app.settings.revenueGoal*100)) : 0,
+    dmPct: app.settings.dailyGoal ? Math.min(100, Math.round(sentToday/app.settings.dailyGoal*100)) : 0,
+    remaining: Math.max(0, app.settings.dailyGoal - sentToday),
+    avgDeal: closed ? (revenue/closed).toFixed(0) : 0,
+  };
 }
 
-function stale() {
-  return $.leads.filter(l => {
+function staleLeads() {
+  return app.leads.filter(l => {
     if (l.status !== 'Sent') return false;
-    return (Date.now() - new Date(l.date||l.created_at)) / 864e5 >= 3;
+    return (Date.now() - new Date(l.date || l.created_at)) / 864e5 >= 3;
   });
 }
 
-function filtered() {
-  let l = [...$.leads];
-  if ($.filter !== 'All') l = l.filter(x => x.status === $.filter);
-  if ($.search.trim()) {
-    const q = $.search.trim().toLowerCase();
-    l = l.filter(x => (x.name||'').toLowerCase().includes(q) || (x.school||'').toLowerCase().includes(q) || (x.ig||'').toLowerCase().includes(q));
+function filteredLeads() {
+  let list = [...app.leads];
+  if (app.filter !== 'All') list = list.filter(l => l.status === app.filter);
+  if (app.search.trim()) {
+    const q = app.search.trim().toLowerCase();
+    list = list.filter(l =>
+      (l.name||'').toLowerCase().includes(q) ||
+      (l.school||'').toLowerCase().includes(q) ||
+      (l.ig||'').toLowerCase().includes(q) ||
+      (l.college||'').toLowerCase().includes(q)
+    );
   }
-  return l;
+  return list;
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// ── RENDER ENTRY ──────────────────────────────────────────────────────────────
 function render() {
-  const app = document.getElementById('app');
-  if (!$.user) { app.innerHTML = loginHTML(); return; }
+  const root = document.getElementById('root');
 
-  const main = $.view === 'crm' ? renderCRM() : renderRevenue();
-  const staleCount = stale().length;
+  if (!app.user) {
+    root.innerHTML = loginHTML();
+    return;
+  }
 
-  app.innerHTML = `
-    <div id="sidebar">
-      <div>
-        <div class="serif" style="font-size:20px;font-weight:300;color:white;padding:4px 10px 0;margin-bottom:24px;letter-spacing:-0.01em">
-          <span style="display:inline-block;width:7px;height:7px;background:var(--blue);border-radius:50%;vertical-align:middle;margin:0 5px 3px 0"></span>
-          APmedia <em style="color:var(--dim)">hub</em>
-        </div>
-        <nav style="display:flex;flex-direction:column;gap:3px">
-          ${ni('crm','Pipeline',pipeIcon(), staleCount ? `<span style="background:var(--amber);color:#000;font-size:9px;font-weight:700;border-radius:20px;padding:2px 6px;margin-left:auto">${staleCount}</span>` : '')}
-          ${ni('rev','Revenue',revIcon())}
-        </nav>
-      </div>
-      <div style="padding:0 6px;border-top:1px solid var(--border);padding-top:14px">
-        <div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px">${esc($.user?.email||'')}</div>
-        <button onclick="A.logout()" style="font-size:11px;color:#7F1D1D;background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+  const stale = staleLeads();
+  const s = stats();
+
+  root.innerHTML = `
+    <div id="shell">
+      ${sidebarHTML(stale.length)}
+      <div id="main">
+        ${app.view === 'pipeline' ? pipelineHTML(s, stale) : revenueHTML(s)}
       </div>
     </div>
-    <div id="main">${main}</div>
-    <nav id="bottom-nav">
-      ${bni('crm','Pipeline',pipeIcon(), staleCount)}
-      ${bni('rev','Revenue',revIcon())}
-    </nav>
-    ${$.showModal ? modalHTML() : ''}
+    ${app.confirmDel ? confirmModal() : ''}
   `;
-
-  // rebind file input
-  const f = document.getElementById('vf');
-  if (f) f.addEventListener('change', e => { window.__pf = e.target.files; });
 }
 
-function ni(v, label, icon, badge='') {
-  return `<button onclick="A.go('${v}')" class="nav-item${$.view===v?' on':''}">
-    ${icon}<span style="flex:1;text-align:left">${label}</span>${badge}
-  </button>`;
-}
-function bni(v, label, icon, badge=0) {
-  return `<button onclick="A.go('${v}')" class="bnav-item${$.view===v?' on':''}">
-    ${icon}
-    <span>${label}</span>
-    ${badge ? `<span style="position:absolute;top:4px;background:var(--amber);color:#000;font-size:8px;font-weight:700;border-radius:10px;padding:1px 4px">${badge}</span>` : ''}
-  </button>`;
-}
-
-// ── Login ─────────────────────────────────────────────────────────────────────
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
 function loginHTML() {
-  return `<div style="min-height:100dvh;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;background:var(--bg)">
-    <div style="max-width:340px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;text-align:center">
-      <div class="serif" style="font-size:36px;font-weight:300;color:white;letter-spacing:-0.02em;margin-bottom:6px">
-        <span style="display:inline-block;width:8px;height:8px;background:var(--blue);border-radius:50%;vertical-align:middle;margin:0 5px 4px 0"></span>
-        APmedia <em style="color:var(--dim)">hub</em>
+  return `
+    <div class="login-screen">
+      <div class="login-card fade">
+        <div style="font-size:44px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <div style="width:10px;height:10px;background:var(--blue);border-radius:50%;box-shadow:0 0 16px var(--glow-b)"></div>
+          <span class="serif" style="font-size:36px;font-weight:300;color:white;letter-spacing:-0.02em">APmedia</span>
+          <em class="serif" style="font-size:36px;font-weight:300;color:var(--dim)">hub</em>
+        </div>
+        <p style="color:var(--muted);font-size:13px;margin-top:8px">Your daily booking & pipeline dashboard.</p>
+        <button class="google-btn" onclick="A.login()" ${app.authLoading?'disabled':''}>
+          <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          ${app.authLoading ? 'Connecting…' : 'Continue with Google'}
+        </button>
+        <p style="font-size:11px;color:var(--dim);margin-top:18px">Add to your iPad home screen for the full app experience.</p>
       </div>
-      <p style="color:var(--dim);font-size:13px;margin:0 0 28px">Daily pipeline & revenue dashboard.</p>
-      <button onclick="A.login()" ${$.authLoading?'disabled':''} style="width:100%;padding:13px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Geist,sans-serif;transition:background 0.15s">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        ${$.authLoading ? 'Signing in...' : 'Continue with Google'}
-      </button>
+    </div>`;
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function sidebarHTML(staleCount) {
+  const ni = (view, label, icon) => {
+    const on = app.view === view;
+    const badge = view === 'pipeline' && staleCount > 0
+      ? `<span class="badge">${staleCount}</span>` : '';
+    return `<button onclick="A.go('${view}')" class="nav-item${on?' on':''}">
+      ${icon}
+      <span style="flex:1">${label}</span>
+      ${badge}
+    </button>`;
+  };
+
+  return `
+  <div id="sidebar">
+    <div>
+      <div class="wordmark">
+        <div class="wordmark-dot"></div>
+        <div class="wordmark-text">APmedia <em>hub</em></div>
+      </div>
+
+      <div class="nav-section-label">Workspace</div>
+      ${ni('pipeline','Pipeline', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`)}
+      ${ni('revenue','Revenue Hub', `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`)}
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-email">${e(app.user?.email||'')}</div>
+      <button class="signout-btn" onclick="A.logout()">Sign out</button>
     </div>
   </div>`;
 }
 
-// ── CRM ───────────────────────────────────────────────────────────────────────
-function renderCRM() {
-  const s = stats(), list = filtered(), late = stale();
-  return `<div class="fade">
-    <div class="section-header">
+// ── PIPELINE ──────────────────────────────────────────────────────────────────
+function pipelineHTML(s, stale) {
+  const list = filteredLeads();
+  return `
+  <div class="fade">
+    <div class="page-header">
       <div>
-        <h2 class="serif section-title">Pipeline</h2>
-        <p class="section-sub">Athlete outreach & deal tracking.</p>
+        <h1 class="serif page-title">Pipeline</h1>
+        <p class="page-sub">Athlete outreach, deal tracking & follow-ups.</p>
       </div>
-      <button class="btn btn-blue" onclick="A.openForm()">+ Add Athlete</button>
+      <button class="btn btn-blue" onclick="A.openForm()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+        Add Athlete
+      </button>
     </div>
 
-    ${late.length ? `
-      <div class="alert-pill" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:10px">
-        <span class="dot dot-followup" style="margin-top:2px;flex-shrink:0"></span>
-        <div>
-          <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:5px">${late.length} lead${late.length>1?'s':''} waiting 3+ days — time to follow up</div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px">${late.map(l=>`<span style="font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:2px 8px;border-radius:6px">${esc(l.name)}</span>`).join('')}</div>
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card">
+        <div class="stat-label">Today's DMs</div>
+        <div class="serif stat-value num" style="color:white">${s.sentToday}<span style="color:var(--dim);font-size:17px;font-family:'DM Sans',sans-serif"> /${app.settings.dailyGoal}</span></div>
+        <div class="pbar"><div class="pbar-fill" style="width:${s.dmPct}%;background:var(--blue)"></div></div>
+        <div class="stat-sub">${s.remaining} left today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Reply Rate</div>
+        <div class="serif stat-value num" style="color:var(--blue)">${s.rr}%</div>
+        <div class="stat-sub">${s.responded} of ${s.n} replied</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Close Rate</div>
+        <div class="serif stat-value num" style="color:var(--green)">${s.cr}%</div>
+        <div class="stat-sub">${s.closed} deals closed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenue</div>
+        <div class="serif stat-value num" style="color:var(--green)">$${s.revenue.toFixed(0)}</div>
+        <div class="pbar"><div class="pbar-fill" style="width:${s.goalPct}%;background:var(--green)"></div></div>
+        <div class="stat-sub">${s.goalPct}% of goal</div>
+      </div>
+    </div>
+
+    ${stale.length > 0 ? `
+    <div class="alert-bar">
+      <span class="dot dot-followup" style="margin-top:2px;flex-shrink:0"></span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:5px">
+          ${stale.length} lead${stale.length>1?'s':''} waiting 3+ days — follow up now
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${stale.map(l=>`<span style="font-size:11px;color:var(--muted);background:var(--s2);border:1px solid var(--border);padding:2px 9px;border-radius:6px">${e(l.name)}</span>`).join('')}
         </div>
       </div>
-    ` : ''}
+    </div>` : ''}
 
-    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
-      <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Today's DMs</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:white">${s.sentToday}<span style="color:var(--dim);font-size:16px;font-family:Geist,sans-serif"> /${$.settings.dailyGoal}</span></div>
-        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${Math.min(100,Math.round(s.sentToday/$.settings.dailyGoal*100))}%;background:var(--blue)"></div></div>
-      </div>
-      <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Reply Rate</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--blue)">${s.rr}%</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.responded} of ${s.total} replied</div>
-      </div>
-      <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Closed</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">${s.closed}</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.cr}% close rate</div>
-      </div>
-      <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Revenue</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">$${s.revenue.toFixed(0)}</div>
-        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${Math.min(100,$.settings.revenueGoal?Math.round(s.revenue/$.settings.revenueGoal*100):0)}%;background:var(--green)"></div></div>
-      </div>
-    </div>
+    ${app.showForm ? addFormHTML() : ''}
 
-    ${$.showForm ? formHTML() : ''}
-
-    <div class="card" style="overflow:hidden">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="text" placeholder="Search…" value="${esc($.search)}" oninput="A.search(this.value)"
-          class="field" style="flex:1;min-width:140px;padding:8px 12px;font-size:13px" />
-        <div style="display:flex;gap:4px;flex-wrap:wrap">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" placeholder="Search athletes, schools…" value="${e(app.search)}"
+          oninput="A.search(this.value)"
+          class="field" style="flex:1;min-width:200px;padding:8px 13px;font-size:13px" />
+        <div class="pills">
           ${['All',...STATUSES].map(f=>`
-            <button onclick="A.filter('${f}')" class="pill${$.filter===f?' on':''}">
-              ${f!=='All'?`<span class="dot ${DOT[f]}" style="width:6px;height:6px"></span>`:''}${f==='Follow Up'?'Follow Up':f}
+            <button onclick="A.filter('${f}')" class="pill${app.filter===f?' on':''}">
+              ${f!=='All'?`<span class="dot ${DOT_MAP[f]}" style="width:6px;height:6px"></span>`:''}
+              ${f==='Not Interested'?'Not Int.':f}
             </button>`).join('')}
         </div>
       </div>
 
-      <!-- Desktop table -->
-      <div class="desktop-only" style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="background:rgba(15,14,13,0.8)">
-              <th class="tbl-th">Athlete</th>
-              <th class="tbl-th">High School</th>
-              <th class="tbl-th">College</th>
-              <th class="tbl-th">Status</th>
-              <th class="tbl-th">Price</th>
-              <th class="tbl-th">Date</th>
-              <th class="tbl-th"></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.length===0?`<tr><td colspan="7" style="padding:48px;text-align:center;color:var(--dim);font-size:13px">No athletes yet — hit + Add Athlete to start.</td></tr>`:''}
-            ${list.map(l=>`
-              <tr class="tbl-row">
-                <td class="tbl-td">
-                  <div style="font-weight:500;color:var(--text)">${esc(l.name)}</div>
-                  ${l.ig?`<div style="font-size:11px;color:var(--dim)">${esc(l.ig)}</div>`:''}
-                </td>
-                <td class="tbl-td" style="color:var(--muted);font-size:12px">${esc(l.school||'—')}</td>
-                <td class="tbl-td" style="color:var(--muted);font-size:12px">${esc(l.college||'—')}</td>
-                <td class="tbl-td">
-                  <div style="display:flex;align-items:center;gap:7px">
-                    <span class="dot ${DOT[l.status]||'dot-sent'}"></span>
-                    <select onchange="A.setStatus('${l.id}',this.value)"
-                      style="background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:Geist,sans-serif;outline:none;padding:0;-webkit-appearance:none">
-                      ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:#1A1816;color:var(--text)">${st}</option>`).join('')}
-                    </select>
-                  </div>
-                </td>
-                <td class="tbl-td">
-                  <div style="display:flex;align-items:center;gap:4px">
-                    <span style="color:var(--dim);font-size:12px">$</span>
-                    <input type="number" min="0" value="${l.price||''}" placeholder="0"
-                      onchange="A.setPrice('${l.id}',this.value)"
-                      style="background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--green);font-size:13px;font-weight:600;font-family:Geist,sans-serif;outline:none;width:56px;padding:2px 0;font-variant-numeric:tabular-nums" />
-                  </div>
-                </td>
-                <td class="tbl-td num" style="color:var(--dim);font-size:11px">${fmt(l.date||l.created_at)}</td>
-                <td class="tbl-td" style="text-align:right">
-                  <button class="btn btn-danger" onclick="A.del('${l.id}')">×</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile cards -->
-      <div style="display:none" class="mobile-list" id="mobile-list">
-        ${list.length===0?`<div style="padding:40px;text-align:center;color:var(--dim);font-size:13px">No athletes — tap + Add Athlete.</div>`:''}
-        ${list.map(l=>`
-          <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-              <div>
-                <div style="font-weight:600;color:var(--text);font-size:14px">${esc(l.name)}</div>
-                ${l.ig?`<div style="font-size:11px;color:var(--dim);margin-top:1px">${esc(l.ig)}</div>`:''}
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th class="tbl-th">Athlete</th>
+            <th class="tbl-th">High School</th>
+            <th class="tbl-th">College</th>
+            <th class="tbl-th">Sport</th>
+            <th class="tbl-th">Status</th>
+            <th class="tbl-th">Charge</th>
+            <th class="tbl-th">Notes</th>
+            <th class="tbl-th">Date</th>
+            <th class="tbl-th"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.length === 0 ? `
+            <tr><td colspan="9">
+              <div class="empty">
+                <div class="empty-icon">🎯</div>
+                ${app.search || app.filter !== 'All' ? 'No matches — try a different filter.' : 'Pipeline empty. Hit + Add Athlete to start.'}
               </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="color:var(--green);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums">$${l.price||'—'}</span>
-                <button class="btn btn-danger" onclick="A.del('${l.id}')">×</button>
+            </td></tr>` : ''}
+          ${list.map(l => `
+          <tr class="tbl-row">
+            <td class="tbl-td">
+              <div style="font-weight:600;color:var(--text);font-size:13px">${e(l.name)}</div>
+              ${l.ig?`<div style="font-size:11px;color:var(--dim);margin-top:1px">${e(l.ig)}</div>`:''}
+            </td>
+            <td class="tbl-td" style="color:var(--muted);font-size:12px">${e(l.school||'—')}</td>
+            <td class="tbl-td" style="color:var(--muted);font-size:12px">${e(l.college||'—')}</td>
+            <td class="tbl-td">
+              ${l.sport ? `<span class="tag tag-sport">${e(l.sport)}</span>` : '<span style="color:var(--dim);font-size:11px">—</span>'}
+            </td>
+            <td class="tbl-td">
+              <div style="display:flex;align-items:center;gap:7px">
+                <span class="dot ${DOT_MAP[l.status]||'dot-sent'}"></span>
+                <select class="status-select" onchange="A.setStatus('${l.id}',this.value)">
+                  ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:var(--s2);color:var(--text)">${st}</option>`).join('')}
+                </select>
               </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span class="dot ${DOT[l.status]||'dot-sent'}"></span>
-              <select onchange="A.setStatus('${l.id}',this.value)"
-                style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;cursor:pointer;font-family:Geist,sans-serif;border-radius:7px;padding:4px 8px;outline:none">
-                ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:#1A1816">${st}</option>`).join('')}
-              </select>
-              ${l.school?`<span style="font-size:11px;color:var(--dim)">${esc(l.school)}</span>`:''}
-              <span style="font-size:11px;color:var(--dim);margin-left:auto">${fmt(l.date||l.created_at)}</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
+            </td>
+            <td class="tbl-td">
+              <div style="display:flex;align-items:center;gap:3px">
+                <span style="color:var(--dim);font-size:12px">$</span>
+                <input type="number" min="0" value="${l.price||''}" placeholder="0"
+                  class="price-input"
+                  onchange="A.setPrice('${l.id}',this.value)" />
+              </div>
+            </td>
+            <td class="tbl-td" style="max-width:160px">
+              <input
+                class="inline-edit"
+                value="${e(l.notes||'')}"
+                placeholder="add note…"
+                onchange="A.setNotes('${l.id}',this.value)"
+                style="width:100%;max-width:150px" />
+            </td>
+            <td class="tbl-td num" style="color:var(--dim);font-size:11px;white-space:nowrap">
+              ${fmtDate(l.date||l.created_at)}
+            </td>
+            <td class="tbl-td" style="text-align:right">
+              <button class="btn-icon" onclick="A.confirmDelete('${l.id}')">×</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
     </div>
   </div>`;
 }
 
-// ── Add / Edit Form ───────────────────────────────────────────────────────────
-function formHTML() {
-  const pkg = $.packages;
-  return `<div class="card" style="padding:20px;margin-bottom:16px;animation:fadeIn 0.15s">
-    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Add Athlete</div>
-    <form onsubmit="event.preventDefault();A.submitForm(this)" class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <input name="name" required placeholder="Athlete Name *" class="field" />
-      <input name="ig" placeholder="@instagram" class="field" />
-      <input name="school" placeholder="High School" class="field" />
-      <input name="college" placeholder="Committed College" class="field" />
-      <div style="display:flex;gap:8px;align-items:center">
-        <select name="sport" class="field" style="flex:1">
-          <option value="">Sport</option>
-          ${['Football','Basketball','Baseball','Soccer','Lacrosse','Wrestling','Track','Other'].map(s=>`<option value="${s}">${s}</option>`).join('')}
-        </select>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span style="color:var(--dim);font-size:13px;flex-shrink:0">$</span>
-        <select name="price" class="field" style="flex:1">
-          <option value="">Price / Package</option>
-          ${pkg.map(p=>`<option value="${p.price}">${p.name} — $${p.price}</option>`).join('')}
-          <option value="custom">Custom…</option>
-        </select>
-        <input name="price_custom" type="number" min="0" placeholder="Custom $" class="field" style="display:none;width:90px" id="custom-price-field" />
-      </div>
-      <textarea name="notes" placeholder="Notes (optional)" class="field" style="grid-column:1/-1;min-height:64px;resize:vertical;font-size:13px"></textarea>
-      <div style="grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px">
-        <button type="button" onclick="A.closeForm()" class="btn btn-ghost">Cancel</button>
-        <button type="submit" class="btn btn-blue">Add to Pipeline</button>
+// ── ADD FORM ──────────────────────────────────────────────────────────────────
+function addFormHTML() {
+  const pkgs = app.packages;
+  return `
+  <div class="form-panel">
+    <div class="form-title">Add Athlete to Pipeline</div>
+    <form onsubmit="event.preventDefault();A.submitForm(this)">
+      <div class="form-grid">
+        <div>
+          <input name="name" required placeholder="Athlete Name *" class="field" />
+        </div>
+        <div>
+          <input name="ig" placeholder="@instagram" class="field" />
+        </div>
+        <div>
+          <input name="school" placeholder="High School" class="field" />
+        </div>
+        <div>
+          <input name="college" placeholder="Committed College" class="field" />
+        </div>
+        <div>
+          <select name="sport" class="field">
+            <option value="">Sport</option>
+            ${SPORTS.map(s=>`<option>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select name="pkg_price" class="field" style="flex:1" onchange="
+            const ci=document.getElementById('custom_price_wrap');
+            ci.style.display=this.value==='custom'?'flex':'none';
+          ">
+            <option value="">Charge / Package</option>
+            ${pkgs.map(p=>`<option value="${p.price}">${p.name} — $${p.price}</option>`).join('')}
+            <option value="custom">Custom amount…</option>
+          </select>
+          <div id="custom_price_wrap" style="display:none;align-items:center;gap:4px">
+            <span style="color:var(--dim)">$</span>
+            <input name="custom_price" type="number" min="0" placeholder="0" class="field" style="width:80px" />
+          </div>
+        </div>
+        <div class="form-full">
+          <textarea name="notes" placeholder="Notes (optional)" class="field"></textarea>
+        </div>
+        <div class="form-full" style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+          <button type="button" onclick="A.closeForm()" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-blue">Add to Pipeline</button>
+        </div>
       </div>
     </form>
   </div>`;
 }
 
-// ── Revenue ───────────────────────────────────────────────────────────────────
-function renderRevenue() {
-  const s = stats(), goalPct = $.settings.revenueGoal ? Math.min(100,Math.round(s.revenue/$.settings.revenueGoal*100)) : 0;
-  const closed = $.leads.filter(l => l.status==='Closed');
-  const byPkg = {};
-  $.leads.forEach(l => { const p = l.price||0; if (p > 0 && l.status==='Closed') byPkg[p] = (byPkg[p]||0)+1; });
-
-  return `<div class="fade">
-    <div class="section-header">
+// ── REVENUE ───────────────────────────────────────────────────────────────────
+function revenueHTML(s) {
+  const closed = app.leads.filter(l => l.status === 'Closed');
+  return `
+  <div class="fade">
+    <div class="page-header">
       <div>
-        <h2 class="serif section-title">Revenue Hub</h2>
-        <p class="section-sub">Packages, goals, and booking history.</p>
+        <h1 class="serif page-title">Revenue Hub</h1>
+        <p class="page-sub">Packages, goals & booking history.</p>
       </div>
     </div>
 
-    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-      <div class="stat-card" style="grid-column:1/2">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Total Revenue</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--green)">$${s.revenue.toFixed(0)}</div>
-        <div class="pbar" style="margin-top:8px"><div class="pbar-fill" style="width:${goalPct}%;background:var(--green)"></div></div>
-        <div style="font-size:10px;color:var(--dim);margin-top:5px">${goalPct}% of $${$.settings.revenueGoal} goal</div>
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card" style="grid-column:span 2">
+        <div class="stat-label">Total Revenue</div>
+        <div class="serif stat-value num" style="color:var(--green);font-size:44px">$${s.revenue.toFixed(0)}</div>
+        <div class="pbar" style="height:4px;margin-top:12px"><div class="pbar-fill" style="width:${s.goalPct}%;background:var(--green)"></div></div>
+        <div class="stat-sub">$${s.revenue.toFixed(0)} of $${app.settings.revenueGoal} monthly goal (${s.goalPct}%)</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Clients Closed</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:white">${s.closed}</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:4px">${s.cr}% close rate</div>
+        <div class="stat-label">Closed Clients</div>
+        <div class="serif stat-value num" style="color:white">${s.closed}</div>
+        <div class="stat-sub">${s.cr}% close rate</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin-bottom:6px">Avg Per Client</div>
-        <div class="serif num" style="font-size:32px;font-weight:300;color:var(--blue)">$${s.closed ? (s.revenue/s.closed).toFixed(0) : 0}</div>
+        <div class="stat-label">Avg per Deal</div>
+        <div class="serif stat-value num" style="color:var(--blue)">$${s.avgDeal}</div>
+        <div class="stat-sub">per closed client</div>
       </div>
     </div>
 
-    <!-- Settings -->
-    <div class="card" style="padding:20px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.05em">Goals</div>
-      <form onsubmit="event.preventDefault();A.saveSettings(this)" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div>
-          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:5px">Daily DM Goal</label>
-          <input name="dailyGoal" type="number" min="1" value="${$.settings.dailyGoal}" class="field" />
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- Goals -->
+      <div class="section-card">
+        <div class="section-card-title">Goals & Settings</div>
+        <form onsubmit="event.preventDefault();A.saveSettings(this)" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Daily DM Goal</label>
+            <input name="dailyGoal" type="number" min="1" value="${app.settings.dailyGoal}" class="field" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Monthly Revenue Goal ($)</label>
+            <input name="revenueGoal" type="number" min="0" value="${app.settings.revenueGoal}" class="field" />
+          </div>
+          <button type="submit" class="btn btn-blue" style="align-self:flex-end;padding:9px 16px;font-size:12px">Save Goals</button>
+        </form>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-card">
+        <div class="section-card-title">Quick Actions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="quick-action" onclick="A.go('pipeline');setTimeout(()=>A.openForm(),50)">
+            <span class="qa-icon">➕</span>
+            <div class="qa-label">Add Lead</div>
+            <div class="qa-sub">Log new athlete DM</div>
+          </button>
+          <button class="quick-action" onclick="A.go('pipeline');setTimeout(()=>A.filter('Follow Up'),50)">
+            <span class="qa-icon">🔔</span>
+            <div class="qa-label">Follow Ups</div>
+            <div class="qa-sub">${staleLeads().length} waiting</div>
+          </button>
+          <button class="quick-action" onclick="A.go('pipeline');setTimeout(()=>A.filter('Responded'),50)">
+            <span class="qa-icon">💬</span>
+            <div class="qa-label">Responded</div>
+            <div class="qa-sub">${app.leads.filter(l=>l.status==='Responded').length} hot leads</div>
+          </button>
+          <button class="quick-action" onclick="A.go('pipeline');setTimeout(()=>A.filter('Closed'),50)">
+            <span class="qa-icon">✅</span>
+            <div class="qa-label">Closed Deals</div>
+            <div class="qa-sub">${s.closed} bookings</div>
+          </button>
         </div>
-        <div>
-          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:5px">Monthly Revenue Goal ($)</label>
-          <input name="revenueGoal" type="number" min="0" value="${$.settings.revenueGoal}" class="field" />
-        </div>
-        <div style="grid-column:1/-1;display:flex;justify-content:flex-end">
-          <button type="submit" class="btn btn-blue" style="padding:9px 16px;font-size:12px">Save Goals</button>
-        </div>
-      </form>
+      </div>
     </div>
 
     <!-- Packages -->
-    <div class="card" style="padding:20px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.05em">Service Packages</div>
-        <button onclick="A.addPkg()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:Geist,sans-serif">+ Add</button>
+    <div class="section-card">
+      <div class="section-card-title">
+        <span>Service Packages</span>
+        <button onclick="A.addPkg()" style="font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit">+ Add Package</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
-        ${$.packages.map((p,i)=>`
-          <div class="pkg">
+      <div class="pkg-grid">
+        ${app.packages.map((p,i)=>`
+          <div class="pkg-card">
             <button class="pkg-del" onclick="A.delPkg(${i})">×</button>
-            <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:2px">$${p.price}</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.4">${esc(p.desc)}</div>
-          </div>
-        `).join('')}
+            <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:3px;letter-spacing:0.02em">$${p.price}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${e(p.name)}</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5">${e(p.desc)}</div>
+          </div>`).join('')}
       </div>
     </div>
 
-    <!-- Closed clients -->
-    ${closed.length ? `
-      <div class="card" style="overflow:hidden">
-        <div style="padding:16px 18px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.05em">Closed Clients</div>
-        ${closed.map(l=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(36,33,32,0.5)">
-            <div style="display:flex;align-items:center;gap:9px">
-              <span class="dot dot-closed"></span>
-              <div>
-                <div style="font-size:13px;font-weight:500;color:var(--text)">${esc(l.name)}</div>
-                ${l.school?`<div style="font-size:11px;color:var(--dim)">${esc(l.school)}</div>`:''}
+    <!-- Closed clients log -->
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-card-title">Closed Clients</div>
+      ${closed.length === 0
+        ? `<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px">No closed deals yet — keep working the pipeline!</div>`
+        : `<div>
+          ${closed.map(l=>`
+            <div class="client-row">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="dot dot-closed"></span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text)">${e(l.name)}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:1px">${[l.school, l.sport].filter(Boolean).join(' · ')||'—'}</div>
+                </div>
               </div>
-            </div>
-            <div style="text-align:right">
-              <div class="num" style="font-size:14px;font-weight:700;color:var(--green)">+$${l.price||0}</div>
-              <div style="font-size:10px;color:var(--dim)">${fmt(l.date||l.created_at)}</div>
-            </div>
+              <div style="text-align:right">
+                <div class="num" style="font-size:15px;font-weight:700;color:var(--green)">+$${l.price||0}</div>
+                <div style="font-size:10px;color:var(--dim);margin-top:2px">${fmtDate(l.date||l.created_at)}</div>
+              </div>
+            </div>`).join('')}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0 0;margin-top:4px;border-top:1px solid var(--border)">
+            <span style="font-size:12px;color:var(--muted)">Total earned</span>
+            <span class="num" style="font-size:17px;font-weight:700;color:var(--green)">$${s.revenue.toFixed(0)}</span>
           </div>
-        `).join('')}
-        <div style="padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--dim)">Total</span>
-          <span class="num" style="font-size:16px;font-weight:700;color:var(--green)">$${s.revenue.toFixed(0)}</span>
-        </div>
-      </div>
-    ` : `<div class="card" style="padding:32px;text-align:center;color:var(--dim);font-size:13px">No closed deals yet — keep pushing the pipeline!</div>`}
+        </div>`}
+    </div>
   </div>`;
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// ── CONFIRM DELETE MODAL ──────────────────────────────────────────────────────
+function confirmModal() {
+  const l = app.leads.find(x => x.id === app.confirmDel);
+  return `
+  <div class="modal-overlay" onclick="if(event.target===this)A.cancelDel()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Remove Athlete?</div>
+        <button class="btn-icon" onclick="A.cancelDel()">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6">
+        This will permanently remove <strong style="color:var(--text)">${e(l?.name||'')}</strong> from your pipeline. This can't be undone.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="A.cancelDel()">Cancel</button>
+        <button onclick="A.deleteLead('${app.confirmDel}')" style="background:#7F1D1D;color:#FCA5A5;border:1px solid rgba(239,68,68,0.3);padding:10px 18px;font-size:13px;border-radius:11px;cursor:pointer;font-weight:500;font-family:inherit">Remove</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
 async function addLead(d) {
-  const { error } = await sb.from('leads').insert([{ user_id: $.user.id, ...d }]);
-  if (error) alert('Error: ' + error.message);
-  $.showForm = false;
-  load();
+  const sbRow = {
+    user_id: app.user.id,
+    name: d.name, ig: d.ig, school: d.school,
+    college: d.college, date: d.date, status: d.status
+  };
+  const { data, error } = await SB.from('leads').insert([sbRow]).select().single();
+  if (error) { alert('Supabase error: ' + error.message); return; }
+  if (data?.id) exSet(data.id, { price: d.price||0, sport: d.sport||'', notes: d.notes||'' });
+  app.showForm = false;
+  loadAll();
 }
 
 window.A = {
-  login: async () => { $.authLoading = true; render(); await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin+location.pathname } }); },
-  logout: async () => { await sb.auth.signOut(); $.leads=[]; render(); },
-  go: (v) => { $.view=v; $.showForm=false; render(); },
-  search: (v) => { $.search=v; render(); },
-  filter: (v) => { $.filter=v; render(); },
-  openForm: () => { $.showForm=true; render(); },
-  closeForm: () => { $.showForm=false; render(); },
+  login: async () => {
+    app.authLoading = true; render();
+    await SB.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+  },
+  logout: async () => { await SB.auth.signOut(); app.leads=[]; render(); },
+  go: v => { app.view=v; app.showForm=false; app.filter='All'; render(); },
+  search: v => { app.search=v; render(); },
+  filter: v => { app.filter=v; render(); },
+  openForm: () => { app.showForm=true; render(); },
+  closeForm: () => { app.showForm=false; render(); },
 
   submitForm(form) {
-    const fd = new FormData(form);
-    const d = {};
-    for (const [k,v] of fd.entries()) d[k] = v.trim();
-    const isCust = d.price === 'custom';
-    d.price = isCust ? parseFloat(d.price_custom)||0 : parseFloat(d.price)||0;
-    delete d.price_custom;
+    const fd = new FormData(form), d = {};
+    for (const [k,v] of fd.entries()) d[k] = (v||'').trim();
+    d.price = d.pkg_price === 'custom'
+      ? parseFloat(d.custom_price)||0
+      : parseFloat(d.pkg_price)||0;
+    delete d.pkg_price; delete d.custom_price;
     d.date = today(); d.status = 'Sent';
     if (d.name) addLead(d);
   },
 
   setStatus: async (id, status) => {
-    await sb.from('leads').update({ status }).eq('id', id);
-    load();
+    await SB.from('leads').update({ status }).eq('id', id);
+    const l = app.leads.find(x=>x.id===id);
+    if (l) l.status = status;
+    render();
   },
-  setPrice: async (id, price) => {
-    await sb.from('leads').update({ price: parseFloat(price)||0 }).eq('id', id);
-    load();
+
+  setPrice: (id, val) => {
+    const price = parseFloat(val)||0;
+    exSet(id, { price });
+    const l = app.leads.find(x=>x.id===id);
+    if (l) l.price = price;
+    render();
   },
-  del: async (id) => {
-    if (!confirm('Remove this athlete?')) return;
-    await sb.from('leads').delete().eq('id', id);
-    load();
+
+  setNotes: (id, val) => {
+    exSet(id, { notes: val });
+    const l = app.leads.find(x=>x.id===id);
+    if (l) l.notes = val;
+    // no full re-render needed — just save
+  },
+
+  confirmDelete: id => { app.confirmDel = id; render(); },
+  cancelDel: () => { app.confirmDel = null; render(); },
+  deleteLead: async id => {
+    await SB.from('leads').delete().eq('id', id);
+    const ex = exLoad(); delete ex[id]; exSave(ex);
+    app.leads = app.leads.filter(l => l.id !== id);
+    app.confirmDel = null;
+    render();
   },
 
   saveSettings(form) {
     const fd = new FormData(form);
-    $.settings.dailyGoal   = Math.max(1, parseInt(fd.get('dailyGoal'))||10);
-    $.settings.revenueGoal = Math.max(0, parseInt(fd.get('revenueGoal'))||500);
-    ls('settings', $.settings);
+    app.settings.dailyGoal   = Math.max(1, parseInt(fd.get('dailyGoal'))||10);
+    app.settings.revenueGoal = Math.max(0, parseInt(fd.get('revenueGoal'))||500);
+    lsSet('settings', app.settings);
     render();
   },
 
   addPkg() {
     const name  = prompt('Package name:');  if (!name) return;
     const price = prompt('Price ($):');     if (!price) return;
-    const desc  = prompt('Description:') || '';
-    $.packages.push({ id: Date.now(), name:name.trim(), price:parseInt(price)||0, desc:desc.trim() });
-    ls('packages', $.packages);
+    const desc  = prompt('Short description:') || '';
+    app.packages.push({ id: Date.now(), name: name.trim(), price: parseInt(price)||0, desc: desc.trim() });
+    lsSet('packages', app.packages);
     render();
   },
   delPkg(i) {
-    $.packages.splice(i,1);
-    ls('packages', $.packages);
+    if (!confirm(`Remove "${app.packages[i]?.name}"?`)) return;
+    app.packages.splice(i,1);
+    lsSet('packages', app.packages);
     render();
-  }
+  },
 };
 
-// Handle custom price toggle
-document.addEventListener('change', e => {
-  if (e.target?.name === 'price') {
-    const cf = document.getElementById('custom-price-field');
-    if (cf) cf.style.display = e.target.value === 'custom' ? 'block' : 'none';
-  }
-});
-
-// Show mobile list on mobile
-function applyMobileLayout() {
-  const isMobile = window.innerWidth < 768;
-  const desktopTable = document.querySelector('.desktop-only');
-  const mobileList = document.getElementById('mobile-list');
-  if (desktopTable) desktopTable.style.display = isMobile ? 'none' : 'block';
-  if (mobileList) mobileList.style.display = isMobile ? 'block' : 'none';
-}
-window.addEventListener('resize', applyMobileLayout);
-document.addEventListener('DOMContentLoaded', applyMobileLayout);
-
-// Observe renders
-const obs = new MutationObserver(applyMobileLayout);
-obs.observe(document.getElementById('app'), { childList:true, subtree:true });
-
 boot();
-</script>
-
-<!-- SVG icons as functions -->
-<script>
-function pipeIcon(){ return `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`; }
-function revIcon(){ return `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`; }
 </script>
 </body>
 </html>
