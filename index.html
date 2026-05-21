@@ -9,361 +9,297 @@
 <meta name="theme-color" content="#090807">
 <title>APmedia Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;-webkit-font-smoothing:antialiased;margin:0;padding:0}
-
-:root {
-  --bg:#090807; --s1:#111010; --s2:#181614; --s3:#1F1C1A; --s4:#252220;
-  --b1:#242120; --b2:#302C29; --b3:#3D3936;
-  --tx:#EAE7E4; --mu:#78716B; --di:#3D3936;
-  --bl:#3B82F6; --bl2:#1D4ED8; --blg:rgba(59,130,246,0.3);
-  --gn:#10B981; --gng:rgba(16,185,129,0.3);
-  --am:#F59E0B; --amg:rgba(245,158,11,0.4);
-  --rd:#EF4444; --rdg:rgba(239,68,68,0.3);
-  --pu:#8B5CF6; --pug:rgba(139,92,246,0.3);
-  --sidebar:228px;
-  --st:env(safe-area-inset-top,0px);
-  --sb:env(safe-area-inset-bottom,0px);
+:root{
+  --bg:#090807;--s1:#111010;--s2:#171513;--s3:#1E1B19;
+  --b1:#222020;--b2:#2E2A28;--b3:#3A3634;
+  --tx:#EAE7E4;--mu:#79726C;--di:#3C3835;
+  --bl:#3B82F6;--bl2:#1D4ED8;--blg:rgba(59,130,246,.28);
+  --gn:#10B981;--gng:rgba(16,185,129,.28);
+  --am:#F59E0B;--amg:rgba(245,158,11,.4);
+  --rd:#EF4444;
+  --sw:220px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
 }
-
 html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overflow:hidden}
 .serif{font-family:'Fraunces',serif;font-optical-sizing:auto}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
 
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+/* SHELL */
+#shell{display:flex;height:100dvh;padding-top:var(--sat)}
 
-/* ─── SHELL ──────────────────────────────────────────────────────────── */
-#shell{display:flex;height:100dvh;padding-top:var(--st)}
-
-/* ─── SIDEBAR ─────────────────────────────────────────────────────────── */
-#sidebar{
-  width:var(--sidebar);min-width:var(--sidebar);
-  background:var(--s1);border-right:1px solid var(--b1);
-  display:flex;flex-direction:column;padding:26px 13px 20px;
-  height:100%;overflow:hidden;
-}
-.logo{display:flex;align-items:center;gap:8px;padding:0 8px;margin-bottom:28px}
+/* SIDEBAR */
+#sb{width:var(--sw);min-width:var(--sw);background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;padding:24px 12px 18px;height:100%}
+.logo{display:flex;align-items:center;gap:8px;padding:2px 8px;margin-bottom:26px}
 .logo-dot{width:8px;height:8px;background:var(--bl);border-radius:50%;box-shadow:0 0 12px var(--blg);flex-shrink:0}
-.logo-text{font-family:'Fraunces',serif;font-size:19px;font-weight:300;color:var(--tx);letter-spacing:-0.02em;line-height:1}
-.logo-text em{color:var(--di);font-style:italic}
-.nav-group-label{font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--di);font-weight:700;padding:0 10px;margin:18px 0 5px}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;font-size:13px;font-weight:500;color:var(--mu);cursor:pointer;border:1px solid transparent;background:none;width:100%;text-align:left;transition:all 0.12s;font-family:inherit}
+.logo-tx{font-family:'Fraunces',serif;font-size:18px;font-weight:300;color:var(--tx);letter-spacing:-.02em}
+.logo-tx em{color:var(--di);font-style:italic}
+.nav-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--di);font-weight:700;padding:0 9px;margin:16px 0 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 9px;border-radius:10px;font-size:13px;font-weight:500;color:var(--mu);cursor:pointer;border:1px solid transparent;background:none;width:100%;text-align:left;transition:color .1s,background .1s,border-color .1s;font-family:inherit}
 .ni:hover{color:var(--tx);background:var(--s2)}
-.ni.on{color:#93C5FD;background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2)}
+.ni.on{color:#93C5FD;background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.18)}
 .ni .nb{margin-left:auto;background:var(--am);color:#000;font-size:9px;font-weight:700;border-radius:20px;padding:2px 6px}
-.sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--b1)}
-.sidebar-email{font-size:11px;color:var(--di);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;margin-bottom:7px}
-.signout{background:none;border:none;cursor:pointer;font-size:11px;color:#7F1D1D;font-family:inherit;padding:0 4px}
+.sb-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--b1)}
+.sb-email{font-size:11px;color:var(--di);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;margin-bottom:6px}
+.so-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#7F1D1D;font-family:inherit;padding:0 4px}
 
-/* ─── MAIN ─────────────────────────────────────────────────────────────── */
-#main{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg);padding:34px 38px 40px;display:flex;flex-direction:column}
-.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--b1)}
-.page-title{font-family:'Fraunces',serif;font-size:28px;font-weight:300;color:white;letter-spacing:-0.03em;line-height:1}
-.page-sub{font-size:12px;color:var(--mu);margin-top:5px}
+/* MAIN */
+#main{flex:1;overflow-y:auto;overflow-x:hidden;padding:32px 36px 36px}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--b1)}
+.pt{font-family:'Fraunces',serif;font-size:27px;font-weight:300;color:#fff;letter-spacing:-.03em;line-height:1}
+.ps{font-size:12px;color:var(--mu);margin-top:4px}
 
-/* ─── STAT CARDS ────────────────────────────────────────────────────────── */
-.sg{display:grid;gap:11px;margin-bottom:20px}
-.sc{background:var(--s1);border:1px solid var(--b1);border-radius:15px;padding:17px 19px}
-.sl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--di);font-weight:700;margin-bottom:7px}
-.sv{font-family:'Fraunces',serif;font-size:33px;font-weight:300;letter-spacing:-0.02em;line-height:1}
-.ss{font-size:11px;color:var(--mu);margin-top:6px}
-.pb{background:var(--s3);border-radius:99px;height:3px;margin-top:9px;overflow:hidden}
-.pbf{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+/* STAT CARDS */
+.sg{display:grid;gap:10px;margin-bottom:18px}
+.sc{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px 18px}
+.sl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--di);font-weight:700;margin-bottom:6px}
+.sv{font-family:'Fraunces',serif;font-size:31px;font-weight:300;letter-spacing:-.02em;line-height:1}
+.ss{font-size:11px;color:var(--mu);margin-top:5px}
+.pb{background:var(--s3);border-radius:99px;height:3px;margin-top:8px;overflow:hidden}
+.pbf{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 
-/* ─── BUTTONS ───────────────────────────────────────────────────────────── */
-.btn{font-family:'DM Sans',sans-serif;font-weight:500;border:none;border-radius:10px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-blue{background:var(--bl);color:white;padding:10px 17px;font-size:13px;box-shadow:0 0 18px rgba(59,130,246,0.22)}
+/* BUTTONS */
+.btn{font-family:'DM Sans',sans-serif;font-weight:500;border:none;border-radius:10px;cursor:pointer;transition:background .12s,box-shadow .12s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-blue{background:var(--bl);color:#fff;padding:10px 16px;font-size:13px;box-shadow:0 0 16px rgba(59,130,246,.2)}
 .btn-blue:hover{background:var(--bl2)}
-.btn-blue:disabled{opacity:0.5;cursor:default}
+.btn-blue:disabled{opacity:.5;cursor:default}
 .btn-ghost{background:transparent;color:var(--mu);padding:9px 13px;font-size:13px;border:1px solid var(--b2)}
 .btn-ghost:hover{color:var(--tx);border-color:var(--b3)}
-.btn-sm{padding:6px 12px;font-size:11px;border-radius:8px}
-.btn-icon{background:none;border:none;cursor:pointer;color:var(--di);font-size:20px;line-height:1;padding:3px 6px;border-radius:7px;transition:all .12s;font-family:inherit}
-.btn-icon:hover{color:var(--rd);background:rgba(239,68,68,0.1)}
+.bx{background:none;border:none;cursor:pointer;color:var(--di);font-size:20px;line-height:1;padding:3px 6px;border-radius:7px;transition:color .1s,background .1s;font-family:inherit}
+.bx:hover{color:var(--rd);background:rgba(239,68,68,.1)}
 
-/* ─── STATUS DOTS ───────────────────────────────────────────────────────── */
+/* DOTS */
 .dot{display:inline-block;border-radius:50%;flex-shrink:0}
-.d-sent{width:9px;height:9px;background:#6B7280}
-.d-responded{width:9px;height:9px;background:var(--bl);box-shadow:0 0 8px var(--blg)}
-.d-followup{width:9px;height:9px;background:var(--am);box-shadow:0 0 8px var(--amg)}
-.d-closed{width:9px;height:9px;background:var(--gn);box-shadow:0 0 8px var(--gng)}
-.d-ni{width:9px;height:9px;background:var(--rd);box-shadow:0 0 8px var(--rdg)}
+.d-s{width:9px;height:9px;background:#6B7280}
+.d-r{width:9px;height:9px;background:var(--bl);box-shadow:0 0 7px var(--blg)}
+.d-f{width:9px;height:9px;background:var(--am);box-shadow:0 0 7px var(--amg)}
+.d-c{width:9px;height:9px;background:var(--gn);box-shadow:0 0 7px var(--gng)}
+.d-n{width:9px;height:9px;background:var(--rd);box-shadow:0 0 6px rgba(239,68,68,.35)}
 
-/* ─── INPUTS ─────────────────────────────────────────────────────────────── */
-.field{background:var(--s2);border:1px solid var(--b1);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 13px;border-radius:10px;width:100%;transition:border-color .15s;-webkit-appearance:none}
+/* INPUTS */
+.field{background:var(--s2);border:1px solid var(--b1);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border-radius:10px;width:100%;transition:border-color .12s;-webkit-appearance:none}
 .field::placeholder{color:var(--di)}
 .field:focus{outline:none;border-color:var(--bl);background:var(--s3)}
-textarea.field{resize:vertical;min-height:68px;line-height:1.5}
+textarea.field{resize:vertical;min-height:64px;line-height:1.5}
 select.field{cursor:pointer}
 
-/* ─── CARD / TABLE ──────────────────────────────────────────────────────── */
-.card{background:var(--s1);border:1px solid var(--b1);border-radius:15px;overflow:hidden}
+/* TABLE */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
 .tbl{width:100%;border-collapse:collapse}
-.th{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--di);font-weight:700;padding:10px 16px;text-align:left;background:rgba(15,14,13,0.7);border-bottom:1px solid var(--b1)}
-.td{padding:12px 16px;border-bottom:1px solid rgba(36,33,32,0.5);vertical-align:middle}
-.tr{transition:background .1s}
-.tr:hover{background:rgba(24,22,20,0.8)}
+.th{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--di);font-weight:700;padding:9px 15px;text-align:left;background:rgba(12,11,10,.7);border-bottom:1px solid var(--b1)}
+.td{padding:11px 15px;border-bottom:1px solid rgba(34,32,32,.5);vertical-align:middle}
+.tr{transition:background .08s}
+.tr:hover{background:rgba(22,20,18,.8)}
 .tr:last-child .td{border-bottom:none}
 
-/* ─── TOOLBAR ───────────────────────────────────────────────────────────── */
-.toolbar{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:rgba(12,11,10,0.5)}
-.pill{font-size:11px;font-weight:500;padding:5px 10px;border-radius:20px;border:1px solid var(--b1);background:transparent;color:var(--mu);cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif}
+/* TOOLBAR */
+.tb{padding:11px 15px;border-bottom:1px solid var(--b1);display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:rgba(10,9,8,.5)}
+.pill{font-size:11px;font-weight:500;padding:5px 10px;border-radius:20px;border:1px solid var(--b1);background:transparent;color:var(--mu);cursor:pointer;transition:color .1s,background .1s,border-color .1s;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
 .pill:hover{color:var(--tx);border-color:var(--b2)}
 .pill.on{background:var(--s3);border-color:var(--b2);color:var(--tx)}
 
-/* ─── FORM PANEL ──────────────────────────────────────────────────────────── */
-.fp{background:var(--s1);border:1px solid var(--b2);border-radius:15px;padding:20px;margin-bottom:16px;animation:fadeUp .16s ease-out}
+/* FORM PANEL */
+.fp{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:18px;margin-bottom:14px;animation:fu .15s ease-out}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .ff{grid-column:1/-1}
 
-/* ─── SECTION CARD ──────────────────────────────────────────────────────── */
-.sec{background:var(--s1);border:1px solid var(--b1);border-radius:15px;padding:20px;margin-bottom:14px}
-.sec-title{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--di);font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+/* SECTION */
+.sec{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:18px;margin-bottom:13px}
+.stl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--di);font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 
-/* ─── MODAL ──────────────────────────────────────────────────────────────── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(10px);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
-.mbox{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:26px;width:100%;max-height:90dvh;overflow-y:auto;animation:scaleIn .18s cubic-bezier(.34,1.56,.64,1)}
-.mhead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
-.mtitle{font-size:15px;font-weight:600;color:var(--tx)}
-.msub{font-size:11px;color:var(--mu);margin-top:3px}
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.84);backdrop-filter:blur(10px);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
+.mb{background:var(--s1);border:1px solid var(--b2);border-radius:19px;padding:24px;width:100%;max-height:88dvh;overflow-y:auto;animation:si .17s cubic-bezier(.34,1.56,.64,1)}
+.mh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.mt{font-size:15px;font-weight:600;color:var(--tx)}
+.msb{font-size:11px;color:var(--mu);margin-top:3px}
 
-/* ─── LOGIN ───────────────────────────────────────────────────────────────── */
-.login-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:32px}
-.login-card{background:var(--s1);border:1px solid var(--b2);border-radius:22px;padding:44px 40px;width:100%;max-width:340px;text-align:center}
-.g-btn{width:100%;padding:13px 20px;background:var(--s2);border:1px solid var(--b2);border-radius:12px;color:var(--tx);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:26px}
-.g-btn:hover{background:var(--s3)}
+/* DM */
+.dm-out{background:var(--s2);border:1px solid var(--b2);border-radius:11px;padding:14px 16px;font-size:13.5px;line-height:1.7;color:var(--tx);min-height:88px;white-space:pre-wrap;margin:13px 0}
+.dm-out.loading{color:var(--mu);font-style:italic;display:flex;align-items:center;gap:9px;min-height:60px}
+.spin{width:14px;height:14px;border:2px solid var(--b2);border-top-color:var(--bl);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.vtab{font-size:11px;font-weight:500;padding:5px 10px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--mu);cursor:pointer;font-family:inherit;transition:background .1s,color .1s,border-color .1s}
+.vtab:hover,.vtab.on{background:var(--bl);color:#fff;border-color:var(--bl)}
 
-/* ─── PKG CARD ────────────────────────────────────────────────────────────── */
-.pkg{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px;position:relative;transition:border-color .15s}
+/* PRICES */
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.pkg{background:var(--s2);border:1px solid var(--b1);border-radius:13px;padding:16px;position:relative;transition:border-color .12s}
 .pkg:hover{border-color:var(--b2)}
-.pkg-del{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--di);font-size:15px;cursor:pointer;opacity:0;transition:all .15s;padding:0;line-height:1}
+.pkg-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--di);font-size:15px;cursor:pointer;opacity:0;transition:all .12s;padding:0;line-height:1}
 .pkg:hover .pkg-del{opacity:1}
 .pkg-del:hover{color:var(--rd)}
 
-/* ─── ALERT ────────────────────────────────────────────────────────────────── */
-.alert{background:rgba(120,53,15,0.15);border:1px solid rgba(217,119,6,0.25);border-radius:12px;padding:12px 15px;margin-bottom:16px;display:flex;align-items:flex-start;gap:9px}
-
-/* ─── DM MODAL ─────────────────────────────────────────────────────────────── */
-.dm-out{background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:15px 17px;font-size:13.5px;line-height:1.7;color:var(--tx);min-height:90px;white-space:pre-wrap;margin:14px 0}
-.dm-out.loading{color:var(--mu);font-style:italic;display:flex;align-items:center;gap:10px}
-.spin{width:15px;height:15px;border:2px solid var(--b2);border-top-color:var(--bl);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.vtab{font-size:11px;font-weight:500;padding:5px 11px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--mu);cursor:pointer;font-family:inherit;transition:all .12s}
-.vtab:hover,.vtab.on{background:var(--bl);color:white;border-color:var(--bl)}
-
-/* ─── CHECKLIST ─────────────────────────────────────────────────────────────── */
-.cl-item{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid rgba(36,33,32,0.5)}
-.cl-item:last-child{border-bottom:none}
-.cl-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--b2);background:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
-.cl-check.done{background:var(--gn);border-color:var(--gn)}
-.cl-check svg{opacity:0;transition:opacity .15s}
-.cl-check.done svg{opacity:1}
-.cl-title{font-size:13px;font-weight:600;color:var(--tx);line-height:1.3}
-.cl-sub{font-size:11px;color:var(--mu);margin-top:3px;line-height:1.5}
-.cl-link{font-size:11px;color:var(--bl);text-decoration:none;margin-top:4px;display:inline-block}
-.cl-link:hover{text-decoration:underline}
-.cl-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:0.05em;margin-left:7px}
-.cb-stripe{background:rgba(139,92,246,0.15);color:#C4B5FD;border:1px solid rgba(139,92,246,0.25)}
-.cb-ig{background:rgba(239,68,68,0.12);color:#FCA5A5;border:1px solid rgba(239,68,68,0.2)}
-.cb-pixieset{background:rgba(16,185,129,0.1);color:#6EE7B7;border:1px solid rgba(16,185,129,0.2)}
-.cb-brand{background:rgba(59,130,246,0.1);color:#93C5FD;border:1px solid rgba(59,130,246,0.2)}
-.section-divider{font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--di);font-weight:700;padding:16px 0 8px;display:flex;align-items:center;gap:10px}
-.section-divider::after{content:'';flex:1;height:1px;background:var(--b1)}
-
-/* ─── QUICK ACTION ──────────────────────────────────────────────────────────── */
-.qa{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:13px 15px;cursor:pointer;transition:all .15s;text-align:left;font-family:inherit;width:100%}
-.qa:hover{border-color:var(--b2);background:var(--s3)}
-.qa-icon{font-size:20px;margin-bottom:5px;display:block}
-.qa-l{font-size:12px;font-weight:600;color:var(--tx)}
-.qa-s{font-size:11px;color:var(--mu);margin-top:2px}
-
-/* ─── TAG ─────────────────────────────────────────────────────────────────── */
-.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:0.04em}
-.tag-sport{background:rgba(59,130,246,0.1);color:#93C5FD;border:1px solid rgba(59,130,246,0.18)}
-
-/* ─── PRICE INPUT ─────────────────────────────────────────────────────────── */
-.price-in{background:transparent;border:none;border-bottom:1px solid var(--b2);color:var(--gn);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;font-variant-numeric:tabular-nums;outline:none;width:58px;padding:2px 0;transition:border-color .15s}
-.price-in:focus{border-color:var(--gn)}
-.price-in::placeholder{color:var(--di);font-weight:400}
-
-/* ─── STATUS SELECT ─────────────────────────────────────────────────────────── */
-.ss-sel{background:transparent;border:none;color:var(--mu);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none;-webkit-appearance:none;padding:0}
-
-/* ─── INLINE EDIT ───────────────────────────────────────────────────────────── */
-.ie{background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--mu);font-size:12px;outline:none;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .15s;padding:0;width:100%;max-width:140px}
+/* PRICE INPUT */
+.pin{background:transparent;border:none;border-bottom:1px solid var(--b2);color:var(--gn);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;font-variant-numeric:tabular-nums;outline:none;width:58px;padding:2px 0;transition:border-color .12s}
+.pin:focus{border-color:var(--gn)}
+.pin::placeholder{color:var(--di);font-weight:400}
+.ssel{background:transparent;border:none;color:var(--mu);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none;-webkit-appearance:none}
+.ie{background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--mu);font-size:12px;outline:none;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .12s;padding:0;width:100%;max-width:138px}
 .ie:focus{border-color:var(--di);color:var(--tx)}
 
-/* ─── EMPTY ──────────────────────────────────────────────────────────────────── */
-.empty{padding:52px 24px;text-align:center;color:var(--mu);font-size:13px}
-.empty-ico{font-size:32px;opacity:0.25;margin-bottom:10px}
+/* MISC */
+.empty{padding:48px 24px;text-align:center;color:var(--mu);font-size:13px}
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;background:rgba(59,130,246,.1);color:#93C5FD;border:1px solid rgba(59,130,246,.16)}
+.alert{background:rgba(120,53,15,.14);border:1px solid rgba(217,119,6,.22);border-radius:11px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px}
+.ar{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(34,32,32,.38)}
+.ar:last-child{border-bottom:none}
 
-/* ─── DASHBOARD GRID ─────────────────────────────────────────────────────────── */
-.dash-top{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:20px}
-.dash-mid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px}
-.activity-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(36,33,32,0.4)}
-.activity-row:last-child{border-bottom:none}
-.client-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(36,33,32,0.4)}
-.client-row:last-child{border-bottom:none}
+/* LOGIN */
+.lw{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:32px}
+.lc{background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:40px 36px;width:100%;max-width:320px;text-align:center}
+.gb{width:100%;padding:13px;background:var(--s2);border:1px solid var(--b2);border-radius:11px;color:var(--tx);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;font-family:'DM Sans',sans-serif;transition:background .12s;margin-top:24px}
+.gb:hover{background:var(--s3)}
 
-/* ─── ANIMATIONS ────────────────────────────────────────────────────────────── */
-.fade{animation:fadeUp .2s ease-out}
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-@keyframes scaleIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}
+/* ANIM */
+.fade{animation:fu .18s ease-out}
+@keyframes fu{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes si{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 
-/* ─── SETUP PROGRESS RING ────────────────────────────────────────────────────── */
-.ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
-svg.ring{transform:rotate(-90deg)}
-.ring-text{position:absolute;font-size:13px;font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+/* API KEY BANNER */
+.api-banner{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:11px;padding:12px 15px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script>
-const {createClient} = window.supabase;
-const SB = createClient("https://nyawnrewrjsmmqmkkdig.supabase.co","sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5");
+const {createClient}=window.supabase;
+const SB=createClient("https://nyawnrewrjsmmqmkkdig.supabase.co","sb_publishable_Fjuz60z2vdbF49NIufoHfA_AyTHgfb5");
+const STATS=['Sent','Responded','Follow Up','Closed','Not Interested'];
+const DM={'Sent':'d-s','Responded':'d-r','Follow Up':'d-f','Closed':'d-c','Not Interested':'d-n'};
+const SPORTS=['Football','Basketball','Baseball','Soccer','Lacrosse','Wrestling','Track','Tennis','Volleyball','Other'];
 
-const STATUSES = ['Sent','Responded','Follow Up','Closed','Not Interested'];
-const DOTMAP = {Sent:'d-sent',Responded:'d-responded','Follow Up':'d-followup',Closed:'d-closed','Not Interested':'d-ni'};
-const SPORTS = ['Football','Basketball','Baseball','Soccer','Lacrosse','Wrestling','Track','Tennis','Volleyball','Other'];
-
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let A = {
-  user:null, view:'home', leads:[], filter:'All', search:'',
-  showForm:false, confirmDel:null,
-  dmLead:null, dmText:'', dmVariant:0, dmLoading:false,
+let S={
+  user:null,view:'dash',leads:[],filter:'All',search:'',
+  showForm:false,delId:null,
+  dmLead:null,dmText:'',dmVar:0,dmLoading:false,
   authLoading:false,
-  packages:[
-    {id:1,name:'Commitment Post',price:25,desc:'1 graphic post for commitment announcement'},
-    {id:2,name:'Highlight Reel',price:75,desc:'60-sec edited highlight, music, graphics'},
-    {id:3,name:'Full Mixtape',price:150,desc:'3-5 min mixtape, 2 revisions, social cuts'},
+  pkgs:[
+    {id:1,name:'Commitment Post',price:25,desc:'Graphic post for commitment announcement, 24hr turnaround'},
+    {id:2,name:'Highlight Reel',price:75,desc:'60-sec edited reel, music, graphics, 1 revision'},
+    {id:3,name:'Full Mixtape',price:150,desc:'3–5 min mixtape, music, 2 revisions, social cuts'},
     {id:4,name:'Social Pack',price:250,desc:'Mixtape + 3 short clips + story covers'},
   ],
   settings:{dailyGoal:10,revenueGoal:500},
-  checklist:{},
 };
 
-// ── STORAGE ───────────────────────────────────────────────────────────────────
-const lk = k=>`ap3_${k}_${A.user?.id}`;
-const lss = (k,v)=>{try{if(A.user)localStorage.setItem(lk(k),JSON.stringify(v))}catch{}};
-const lsg = (k,fb)=>{try{const v=localStorage.getItem(lk(k));return v?JSON.parse(v):fb}catch{return fb}};
-const exk = ()=>`ap3_ex_${A.user?.id}`;
-const exl = ()=>{try{return JSON.parse(localStorage.getItem(exk())||'{}')}catch{return{}}};
-const exs = m=>localStorage.setItem(exk(),JSON.stringify(m));
-const exg = id=>exl()[id]||{};
-const ext = (id,p)=>{const m=exl();m[id]={...m[id],...p};exs(m)};
-const merge = leads=>{const ex=exl();return leads.map(l=>({...l,...(ex[l.id]||{})}))};
+/* ── STORAGE ── */
+const lk=k=>`ap_${k}_${S.user?.id}`;
+const ls=(k,v)=>{try{if(S.user)localStorage.setItem(lk(k),JSON.stringify(v))}catch{}};
+const lg=(k,fb)=>{try{const v=localStorage.getItem(lk(k));return v?JSON.parse(v):fb}catch{return fb}};
+const exk=()=>`ap_ex_${S.user?.id}`;
+const exl=()=>{try{return JSON.parse(localStorage.getItem(exk())||'{}')}catch{return{}}};
+const exs=m=>localStorage.setItem(exk(),JSON.stringify(m));
+const ext=(id,p)=>{const m=exl();m[id]={...m[id],...p};exs(m)};
+const merge=ls2=>{const ex=exl();return ls2.map(l=>({...l,...(ex[l.id]||{})}))};
+const getApiKey=()=>localStorage.getItem('ap_apikey')||'';
+const setApiKey=v=>localStorage.setItem('ap_apikey',v.trim());
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
+/* ── AUTH ── */
 async function boot(){
   const {data:{session}}=await SB.auth.getSession();
-  A.user=session?.user??null;
-  SB.auth.onAuthStateChange((_,s)=>{A.user=s?.user??null;A.user?loadAll():render()});
-  A.user?loadAll():render();
+  S.user=session?.user??null;
+  SB.auth.onAuthStateChange((_,s)=>{S.user=s?.user??null;S.user?loadAll():render()});
+  S.user?loadAll():render();
 }
 async function loadAll(){
   const {data,error}=await SB.from('leads').select('*').order('created_at',{ascending:false});
-  if(!error&&data)A.leads=merge(data);
-  A.packages=lsg('packages',A.packages);
-  A.settings={...A.settings,...lsg('settings',{})};
-  A.checklist=lsg('checklist',{});
+  if(!error&&data)S.leads=merge(data);
+  S.pkgs=lg('pkgs',S.pkgs);
+  S.settings={...S.settings,...lg('settings',{})};
   render();
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
+/* ── UTILS ── */
 const today=()=>new Date().toISOString().slice(0,10);
 const fd=s=>{if(!s)return'';const d=s.slice(0,10).split('-');return`${+d[1]}/${+d[2]}`};
 const esc=s=>(s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let searchTimer=null;
+
 function stats(){
-  const all=A.leads,n=all.length,t=today();
+  const all=S.leads,n=all.length,t=today();
   const st=all.filter(l=>(l.date||'').startsWith(t)).length;
   const re=all.filter(l=>['Responded','Closed'].includes(l.status)).length;
   const cl=all.filter(l=>l.status==='Closed').length;
-  const rv=all.reduce((s,l)=>s+(parseFloat(l.price)||0),0);
+  const rv=all.reduce((a,l)=>a+(parseFloat(l.price)||0),0);
   return{n,st,re,cl,rv,
     rr:n?Math.round(re/n*100):0,
     cr:n?Math.round(cl/n*100):0,
-    gp:A.settings.revenueGoal?Math.min(100,Math.round(rv/A.settings.revenueGoal*100)):0,
-    dp:A.settings.dailyGoal?Math.min(100,Math.round(st/A.settings.dailyGoal*100)):0,
-    rem:Math.max(0,A.settings.dailyGoal-st),
-    avg:cl?(rv/cl).toFixed(0):0
+    gp:S.settings.revenueGoal?Math.min(100,Math.round(rv/S.settings.revenueGoal*100)):0,
+    dp:S.settings.dailyGoal?Math.min(100,Math.round(st/S.settings.dailyGoal*100)):0,
+    rem:Math.max(0,S.settings.dailyGoal-st)
   };
 }
-function stale(){return A.leads.filter(l=>l.status==='Sent'&&(Date.now()-new Date(l.date||l.created_at))/864e5>=3)}
+function stale(){return S.leads.filter(l=>l.status==='Sent'&&(Date.now()-new Date(l.date||l.created_at))/864e5>=3)}
 function filtered(){
-  let l=[...A.leads];
-  if(A.filter!=='All')l=l.filter(x=>x.status===A.filter);
-  if(A.search.trim()){const q=A.search.trim().toLowerCase();l=l.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.school||'').toLowerCase().includes(q)||(x.ig||'').toLowerCase().includes(q))}
+  let l=[...S.leads];
+  if(S.filter!=='All')l=l.filter(x=>x.status===S.filter);
+  if(S.search.trim()){const q=S.search.trim().toLowerCase();l=l.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.school||'').toLowerCase().includes(q)||(x.ig||'').toLowerCase().includes(q))}
   return l;
 }
-function clDone(){return Object.values(A.checklist).filter(Boolean).length}
-const CL_TOTAL=14;
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
+/* ── RENDER ── */
 function render(){
   const root=document.getElementById('root');
-  if(!A.user){root.innerHTML=loginHTML();return}
+  if(!S.user){root.innerHTML=loginHTML();return}
   const sl=stale().length,s=stats();
-  let content='';
-  if(A.view==='home')content=homeHTML(s,sl);
-  else if(A.view==='pipeline')content=pipeHTML(s,sl);
-  else if(A.view==='revenue')content=revHTML(s);
-  else if(A.view==='setup')content=setupHTML();
   root.innerHTML=`
     <div id="shell">
-      ${sidebarHTML(sl)}
-      <div id="main">${content}</div>
+      ${sidebar(sl)}
+      <div id="main">${S.view==='dash'?dashHTML(s,sl):S.view==='pipeline'?pipeHTML(s,sl):pkgsHTML()}</div>
     </div>
-    ${A.confirmDel?delModal():''}
-    ${A.dmLead?dmModal():''}`;
+    ${S.delId?delModal():''}
+    ${S.dmLead?dmModal():''}`;
 }
 
-// ── SIDEBAR ───────────────────────────────────────────────────────────────────
-function sidebarHTML(sl){
-  const n=(v,label,icon,badge='')=>`
-    <button onclick="AP.go('${v}')" class="ni${A.view===v?' on':''}">
-      ${icon}<span style="flex:1">${label}</span>${badge}
-    </button>`;
-  const done=clDone();
-  const setupBadge=done<CL_TOTAL?`<span class="nb" style="background:var(--pu);color:white">${CL_TOTAL-done}</span>`:'';
-  return`<div id="sidebar">
+/* ── SIDEBAR ── */
+function sidebar(sl){
+  const n=(v,lbl,ico,badge='')=>`<button onclick="AP.go('${v}')" class="ni${S.view===v?' on':''}">
+    ${ico}<span style="flex:1">${lbl}</span>${badge}
+  </button>`;
+  return`<div id="sb">
     <div>
-      <div class="logo"><div class="logo-dot"></div><div class="logo-text">APmedia <em>hub</em></div></div>
-      <div class="nav-group-label">Main</div>
-      ${n('home','Dashboard',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`)}
+      <div class="logo"><div class="logo-dot"></div><div class="logo-tx">APmedia <em>hub</em></div></div>
+      ${n('dash','Dashboard',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`)}
       ${n('pipeline','Pipeline',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,sl?`<span class="nb">${sl}</span>`:'')}
-      ${n('revenue','Revenue',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`)}
-      <div class="nav-group-label">Business</div>
-      ${n('setup','Setup Checklist',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,setupBadge)}
+      ${n('pkgs','Packages',`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`)}
     </div>
-    <div class="sidebar-foot">
-      <div class="sidebar-email">${esc(A.user?.email||'')}</div>
-      <button class="signout" onclick="AP.logout()">Sign out</button>
+    <div class="sb-foot">
+      <div class="sb-email">${esc(S.user?.email||'')}</div>
+      <button class="so-btn" onclick="AP.logout()">Sign out</button>
     </div>
   </div>`;
 }
 
-// ── HOME DASHBOARD ─────────────────────────────────────────────────────────────
-function homeHTML(s,sl){
-  const recent=A.leads.slice(0,5);
-  const closed=A.leads.filter(l=>l.status==='Closed').slice(0,4);
-  const responded=A.leads.filter(l=>l.status==='Responded');
-  const done=clDone();
-  const now=new Date();
-  const h=now.getHours();const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
-  const firstName=A.user?.email?.split('@')[0]||'';
+/* ── DASHBOARD ── */
+function dashHTML(s,sl){
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const late=stale();
+  const responded=S.leads.filter(l=>l.status==='Responded');
+  const recent=S.leads.slice(0,6);
+  const closed=S.leads.filter(l=>l.status==='Closed').slice(0,4);
+  const hasKey=!!getApiKey();
   return`<div class="fade">
-    <div style="margin-bottom:24px">
-      <div class="serif" style="font-size:26px;font-weight:300;color:white;letter-spacing:-0.02em">${greet} ✦</div>
-      <div style="font-size:13px;color:var(--mu);margin-top:4px">Here's where APmedia stands today.</div>
+    <div style="margin-bottom:22px">
+      <div class="serif" style="font-size:24px;font-weight:300;color:#fff;letter-spacing:-.02em">${greet} ✦</div>
+      <div style="font-size:12px;color:var(--mu);margin-top:4px">Here's where APmedia stands today.</div>
     </div>
 
-    <div class="dash-top">
+    ${!hasKey?`<div class="api-banner">
+      <svg width="14" height="14" fill="none" stroke="#C4B5FD" stroke-width="2" viewBox="0 0 24 24"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+      <span style="font-size:12px;color:#C4B5FD;flex:1">Add your Anthropic API key to enable AI DM generation</span>
+      <button onclick="AP.showKeyModal()" style="font-size:11px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.35);color:#C4B5FD;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:600">Add Key →</button>
+    </div>`:''}
+
+    <div class="sg" style="grid-template-columns:repeat(4,1fr)">
       <div class="sc">
         <div class="sl">Today's DMs</div>
-        <div class="sv num" style="color:white">${s.st}<span style="color:var(--di);font-size:16px;font-family:'DM Sans',sans-serif"> /${A.settings.dailyGoal}</span></div>
+        <div class="sv num" style="color:#fff">${s.st}<span style="color:var(--di);font-size:15px;font-family:'DM Sans',sans-serif"> /${S.settings.dailyGoal}</span></div>
         <div class="pb"><div class="pbf" style="width:${s.dp}%;background:var(--bl)"></div></div>
         <div class="ss">${s.rem} left to hit goal</div>
       </div>
@@ -373,221 +309,190 @@ function homeHTML(s,sl){
         <div class="ss">${s.re} of ${s.n} replied</div>
       </div>
       <div class="sc">
+        <div class="sl">Closed</div>
+        <div class="sv num" style="color:var(--gn)">${s.cl}</div>
+        <div class="ss">${s.cr}% close rate</div>
+      </div>
+      <div class="sc">
         <div class="sl">Revenue</div>
         <div class="sv num" style="color:var(--gn)">$${s.rv.toFixed(0)}</div>
         <div class="pb"><div class="pbf" style="width:${s.gp}%;background:var(--gn)"></div></div>
-        <div class="ss">${s.gp}% of $${A.settings.revenueGoal} goal</div>
-      </div>
-      <div class="sc" onclick="AP.go('setup')" style="cursor:pointer;border-color:${done<CL_TOTAL?'rgba(139,92,246,0.3)':'rgba(16,185,129,0.3)'}">
-        <div class="sl">Setup Progress</div>
-        <div class="sv num" style="color:${done<CL_TOTAL?'var(--pu)':'var(--gn)'}">${done}<span style="color:var(--di);font-size:16px;font-family:'DM Sans',sans-serif"> /${CL_TOTAL}</span></div>
-        <div class="pb"><div class="pbf" style="width:${Math.round(done/CL_TOTAL*100)}%;background:${done<CL_TOTAL?'var(--pu)':'var(--gn)'}"></div></div>
-        <div class="ss">${done<CL_TOTAL?`${CL_TOTAL-done} items left`:'All done! 🎉'}</div>
+        <div class="ss">${s.gp}% of $${S.settings.revenueGoal}</div>
       </div>
     </div>
 
-    <div class="dash-mid">
-      <!-- Left: activity + hot leads -->
+    ${late.length?`<div class="alert">
+      <span class="dot d-f" style="margin-top:2px;flex-shrink:0"></span>
       <div>
-        ${sl>0?`<div class="alert">
-          <span class="dot d-followup" style="margin-top:2px;flex-shrink:0"></span>
-          <div>
-            <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:4px">${sl} athlete${sl>1?'s':''} waiting 3+ days for follow-up</div>
-            <button onclick="AP.go('pipeline');setTimeout(()=>AP.filter('Sent'),50)" style="font-size:11px;color:var(--am);background:none;border:none;cursor:pointer;font-family:inherit;padding:0">View in pipeline →</button>
-          </div>
-        </div>`:''}
-
-        ${responded.length>0?`<div class="sec" style="margin-bottom:14px">
-          <div class="sec-title">🔥 Hot Leads — Need Your Reply</div>
-          ${responded.slice(0,4).map(l=>`
-            <div class="activity-row">
-              <span class="dot d-responded"></span>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.name)}</div>
-                <div style="font-size:11px;color:var(--mu)">${esc(l.school||'')}${l.college?` → ${esc(l.college)}`:''}</div>
-              </div>
-              <button onclick="AP.openDM('${l.id}')" style="font-size:11px;color:#93C5FD;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);padding:5px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap">✦ DM</button>
-            </div>`).join('')}
-        </div>`:''}
-
-        <div class="sec">
-          <div class="sec-title">Recent Pipeline</div>
-          ${recent.length===0?`<div style="color:var(--mu);font-size:13px;padding:10px 0">No athletes yet.</div>`:''}
-          ${recent.map(l=>`
-            <div class="activity-row">
-              <span class="dot ${DOTMAP[l.status]||'d-sent'}"></span>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.name)}</div>
-                <div style="font-size:11px;color:var(--mu)">${esc(l.status)}</div>
-              </div>
-              <span class="num" style="font-size:11px;color:var(--di);flex-shrink:0">${fd(l.date||l.created_at)}</span>
-            </div>`).join('')}
-          <button onclick="AP.go('pipeline')" style="font-size:12px;color:var(--bl);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:10px;padding:0">View full pipeline →</button>
-        </div>
+        <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:4px">${late.length} athlete${late.length>1?'s':''} waiting 3+ days — follow up now</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${late.map(l=>`<span style="font-size:11px;color:var(--mu);background:var(--s2);border:1px solid var(--b1);padding:2px 8px;border-radius:5px">${esc(l.name)}</span>`).join('')}</div>
       </div>
+    </div>`:''}
 
-      <!-- Right: quick actions + closed deals -->
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:13px">
       <div>
-        <div class="sec">
-          <div class="sec-title">Quick Actions</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button class="qa" onclick="AP.go('pipeline');setTimeout(()=>AP.openForm(),50)">
-              <span class="qa-icon">➕</span>
-              <div class="qa-l">Add Lead</div>
-              <div class="qa-s">Log new DM</div>
-            </button>
-            <button class="qa" onclick="AP.go('setup')">
-              <span class="qa-icon">⚙️</span>
-              <div class="qa-l">Setup</div>
-              <div class="qa-s">${CL_TOTAL-done} items left</div>
-            </button>
-            <button class="qa" onclick="AP.go('pipeline');setTimeout(()=>AP.filter('Follow Up'),50)">
-              <span class="qa-icon">🔔</span>
-              <div class="qa-l">Follow Ups</div>
-              <div class="qa-s">${sl} waiting</div>
-            </button>
-            <button class="qa" onclick="AP.go('revenue')">
-              <span class="qa-icon">💰</span>
-              <div class="qa-l">Revenue</div>
-              <div class="qa-s">$${s.rv.toFixed(0)} earned</div>
-            </button>
-          </div>
-        </div>
-
+        ${responded.length?`<div class="sec">
+          <div class="stl">🔥 Responded — Close These Now</div>
+          ${responded.slice(0,5).map(l=>`<div class="ar">
+            <span class="dot d-r"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.name)}</div>
+              <div style="font-size:11px;color:var(--mu)">${esc(l.college||l.school||'—')}</div>
+            </div>
+            <button onclick="AP.openDM('${l.id}')" style="font-size:11px;color:#93C5FD;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit;flex-shrink:0">✦ DM</button>
+          </div>`).join('')}
+        </div>`:''}
         <div class="sec" style="margin-bottom:0">
-          <div class="sec-title">Closed Deals</div>
-          ${closed.length===0?`<div style="color:var(--mu);font-size:13px;padding:8px 0">No closed deals yet.</div>`:''}
-          ${closed.map(l=>`
-            <div class="client-row">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="dot d-closed"></span>
-                <div style="font-size:13px;font-weight:500;color:var(--tx)">${esc(l.name)}</div>
-              </div>
-              <span class="num" style="font-size:14px;font-weight:700;color:var(--gn)">+$${l.price||0}</span>
-            </div>`).join('')}
-          ${s.cl>4?`<button onclick="AP.go('revenue')" style="font-size:12px;color:var(--bl);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:10px;padding:0">View all →</button>`:''}
+          <div class="stl">Recent Pipeline</div>
+          ${recent.length===0?`<div style="color:var(--mu);font-size:13px">No athletes yet.</div>`:''}
+          ${recent.map(l=>`<div class="ar">
+            <span class="dot ${DM[l.status]||'d-s'}"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.name)}</div>
+              <div style="font-size:11px;color:var(--mu)">${esc(l.status)}</div>
+            </div>
+            <span class="num" style="font-size:11px;color:var(--di);flex-shrink:0">${fd(l.date||l.created_at)}</span>
+          </div>`).join('')}
+          <button onclick="AP.go('pipeline')" style="font-size:12px;color:var(--bl);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:9px;padding:0">View full pipeline →</button>
         </div>
       </div>
+      <div>
+        <div class="sec">
+          <div class="stl">Quick Actions</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+            ${[
+              ['➕','Add Lead','Log new DM',"AP.go('pipeline');setTimeout(()=>AP.openForm(),30)"],
+              ['🎯','Follow Ups',`${sl} waiting`,"AP.go('pipeline');setTimeout(()=>AP.filter('Follow Up'),30)"],
+              ['💬','Hot Leads',`${responded.length} replied`,"AP.go('pipeline');setTimeout(()=>AP.filter('Responded'),30)"],
+              ['📦','Packages','View pricing',"AP.go('pkgs')"],
+            ].map(([ico,lbl,sub,fn])=>`
+              <button onclick="${fn}" style="background:var(--s2);border:1px solid var(--b1);border-radius:11px;padding:12px;cursor:pointer;text-align:left;font-family:inherit;transition:border-color .12s" onmouseover="this.style.borderColor='var(--b2)'" onmouseout="this.style.borderColor='var(--b1)'">
+                <div style="font-size:18px;margin-bottom:4px">${ico}</div>
+                <div style="font-size:12px;font-weight:600;color:var(--tx)">${lbl}</div>
+                <div style="font-size:11px;color:var(--mu);margin-top:1px">${sub}</div>
+              </button>`).join('')}
+          </div>
+        </div>
+        <div class="sec" style="margin-bottom:0">
+          <div class="stl">Closed Deals</div>
+          ${closed.length===0?`<div style="color:var(--mu);font-size:13px">No closed deals yet.</div>`:''}
+          ${closed.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(34,32,32,.4)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="dot d-c"></span>
+              <span style="font-size:13px;font-weight:500;color:var(--tx)">${esc(l.name)}</span>
+            </div>
+            <span class="num" style="font-size:14px;font-weight:700;color:var(--gn)">+$${l.price||0}</span>
+          </div>`).join('')}
+          ${s.cl>0?`<div style="display:flex;justify-content:space-between;padding:10px 0 0;margin-top:4px;border-top:1px solid var(--b1)">
+            <span style="font-size:12px;color:var(--mu)">Total earned</span>
+            <span class="num" style="font-size:15px;font-weight:700;color:var(--gn)">$${s.rv.toFixed(0)}</span>
+          </div>`:''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals inline -->
+    <div class="sec" style="margin-top:13px;margin-bottom:0">
+      <div class="stl">Goals</div>
+      <form onsubmit="event.preventDefault();AP.saveSettings(this)" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;color:var(--mu);display:block;margin-bottom:4px">Daily DM Goal</label>
+          <input name="dailyGoal" type="number" min="1" value="${S.settings.dailyGoal}" class="field" style="padding:8px 11px"/>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;color:var(--mu);display:block;margin-bottom:4px">Monthly Revenue Goal ($)</label>
+          <input name="revenueGoal" type="number" min="0" value="${S.settings.revenueGoal}" class="field" style="padding:8px 11px"/>
+        </div>
+        <button type="submit" class="btn btn-blue" style="padding:9px 15px;font-size:12px">Save</button>
+      </form>
     </div>
   </div>`;
 }
 
-// ── PIPELINE ──────────────────────────────────────────────────────────────────
+/* ── PIPELINE ── */
 function pipeHTML(s,sl){
   const list=filtered(),late=stale();
   return`<div class="fade">
-    <div class="page-head">
-      <div><h1 class="serif page-title">Pipeline</h1><p class="page-sub">Athlete outreach, deal tracking & follow-ups.</p></div>
+    <div class="ph">
+      <div><h1 class="serif pt">Pipeline</h1><p class="ps">Athlete outreach & deal tracking.</p></div>
       <button class="btn btn-blue" onclick="AP.openForm()">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>Add Athlete
       </button>
     </div>
-
     <div class="sg" style="grid-template-columns:repeat(4,1fr)">
-      <div class="sc">
-        <div class="sl">Today's DMs</div>
-        <div class="sv num" style="color:white">${s.st}<span style="color:var(--di);font-size:16px;font-family:'DM Sans',sans-serif"> /${A.settings.dailyGoal}</span></div>
-        <div class="pb"><div class="pbf" style="width:${s.dp}%;background:var(--bl)"></div></div>
-        <div class="ss">${s.rem} left</div>
-      </div>
+      <div class="sc"><div class="sl">Today's DMs</div><div class="sv num" style="color:#fff">${s.st}<span style="color:var(--di);font-size:15px;font-family:'DM Sans',sans-serif"> /${S.settings.dailyGoal}</span></div><div class="pb"><div class="pbf" style="width:${s.dp}%;background:var(--bl)"></div></div></div>
       <div class="sc"><div class="sl">Reply Rate</div><div class="sv num" style="color:var(--bl)">${s.rr}%</div><div class="ss">${s.re} replied</div></div>
       <div class="sc"><div class="sl">Close Rate</div><div class="sv num" style="color:var(--gn)">${s.cr}%</div><div class="ss">${s.cl} closed</div></div>
       <div class="sc"><div class="sl">Revenue</div><div class="sv num" style="color:var(--gn)">$${s.rv.toFixed(0)}</div><div class="pb"><div class="pbf" style="width:${s.gp}%;background:var(--gn)"></div></div></div>
     </div>
-
-    ${late.length?`<div class="alert">
-      <span class="dot d-followup" style="margin-top:2px;flex-shrink:0"></span>
-      <div>
-        <div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:4px">${late.length} lead${late.length>1?'s':''} waiting 3+ days — follow up</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">${late.map(l=>`<span style="font-size:11px;color:var(--mu);background:var(--s2);border:1px solid var(--b1);padding:2px 8px;border-radius:6px">${esc(l.name)}</span>`).join('')}</div>
-      </div>
-    </div>`:''}
-
-    ${A.showForm?addFormHTML():''}
-
+    ${late.length?`<div class="alert"><span class="dot d-f" style="margin-top:2px;flex-shrink:0"></span><div><div style="font-size:12px;font-weight:600;color:#FCD34D;margin-bottom:4px">${late.length} lead${late.length>1?'s':''} waiting 3+ days</div><div style="display:flex;flex-wrap:wrap;gap:4px">${late.map(l=>`<span style="font-size:11px;color:var(--mu);background:var(--s2);border:1px solid var(--b1);padding:2px 8px;border-radius:5px">${esc(l.name)}</span>`).join('')}</div></div></div>`:''}
+    ${S.showForm?addFormHTML():''}
     <div class="card">
-      <div class="toolbar">
-        <input type="text" placeholder="Search athletes…" value="${esc(A.search)}" oninput="AP.search(this.value)"
-          class="field" style="flex:1;min-width:180px;padding:8px 12px;font-size:13px"/>
-        <div class="pills">
-          ${['All',...STATUSES].map(f=>`
-            <button onclick="AP.filter('${f}')" class="pill${A.filter===f?' on':''}">
-              ${f!=='All'?`<span class="dot ${DOTMAP[f]}" style="width:6px;height:6px"></span>`:''}
-              ${f==='Not Interested'?'Not Int.':f}
-            </button>`).join('')}
+      <div class="tb">
+        <input type="text" placeholder="Search…" value="${esc(S.search)}"
+          oninput="clearTimeout(searchTimer);searchTimer=setTimeout(()=>{S.search=this.value;render()},220)"
+          class="field" style="flex:1;min-width:160px;padding:7px 11px;font-size:13px"/>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${['All',...STATS].map(f=>`<button onclick="AP.filter('${f}')" class="pill${S.filter===f?' on':''}">
+            ${f!=='All'?`<span class="dot ${DM[f]}" style="width:6px;height:6px"></span>`:''}
+            ${f==='Not Interested'?'Not Int.':f}
+          </button>`).join('')}
         </div>
       </div>
-      <table class="tbl">
-        <thead><tr>
-          <th class="th">Athlete</th><th class="th">High School</th><th class="th">College</th>
-          <th class="th">Sport</th><th class="th">Status</th><th class="th">Charge</th>
-          <th class="th">Notes</th><th class="th">Date</th><th class="th"></th>
-        </tr></thead>
-        <tbody>
-          ${list.length===0?`<tr><td colspan="9"><div class="empty"><div class="empty-ico">🎯</div>${A.search||A.filter!=='All'?'No matches.':'Pipeline empty — add your first athlete!'}</div></td></tr>`:''}
-          ${list.map(l=>`
-          <tr class="tr">
-            <td class="td">
-              <div style="font-weight:600;color:var(--tx);font-size:13px">${esc(l.name)}</div>
-              ${l.ig?`<div style="font-size:11px;color:var(--di);margin-top:1px">${esc(l.ig)}</div>`:''}
-            </td>
-            <td class="td" style="color:var(--mu);font-size:12px">${esc(l.school||'—')}</td>
-            <td class="td" style="color:var(--mu);font-size:12px">${esc(l.college||'—')}</td>
-            <td class="td">${l.sport?`<span class="tag tag-sport">${esc(l.sport)}</span>`:'<span style="color:var(--di);font-size:11px">—</span>'}</td>
-            <td class="td">
-              <div style="display:flex;align-items:center;gap:7px">
-                <span class="dot ${DOTMAP[l.status]||'d-sent'}"></span>
-                <select class="ss-sel" onchange="AP.setStatus('${l.id}',this.value)">
-                  ${STATUSES.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:var(--s2);color:var(--tx)">${st}</option>`).join('')}
-                </select>
-              </div>
-            </td>
-            <td class="td">
-              <div style="display:flex;align-items:center;gap:3px">
-                <span style="color:var(--di);font-size:12px">$</span>
-                <input type="number" min="0" value="${l.price||''}" placeholder="0" class="price-in" onchange="AP.setPrice('${l.id}',this.value)"/>
-              </div>
-            </td>
-            <td class="td"><input class="ie" value="${esc(l.notes||'')}" placeholder="note…" onchange="AP.setNotes('${l.id}',this.value)"/></td>
-            <td class="td num" style="color:var(--di);font-size:11px;white-space:nowrap">${fd(l.date||l.created_at)}</td>
-            <td class="td" style="white-space:nowrap;text-align:right">
-              <button onclick="AP.openDM('${l.id}')" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.22);color:#93C5FD;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit;margin-right:4px;transition:all .12s" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">✦ DM</button>
-              <button class="btn-icon" onclick="AP.confirmDelete('${l.id}')">×</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th class="th">Athlete</th><th class="th">High School</th><th class="th">College</th>
+            <th class="th">Sport</th><th class="th">Status</th><th class="th">Charge</th>
+            <th class="th">Notes</th><th class="th">Date</th><th class="th"></th>
+          </tr></thead>
+          <tbody>
+            ${list.length===0?`<tr><td colspan="9"><div class="empty"><div style="font-size:28px;opacity:.2;margin-bottom:8px">🎯</div>${S.search||S.filter!=='All'?'No matches.':'Pipeline empty — hit + Add Athlete.'}</div></td></tr>`:''}
+            ${list.map(l=>`<tr class="tr">
+              <td class="td"><div style="font-weight:600;color:var(--tx);font-size:13px">${esc(l.name)}</div>${l.ig?`<div style="font-size:11px;color:var(--di);margin-top:1px">${esc(l.ig)}</div>`:''}</td>
+              <td class="td" style="color:var(--mu);font-size:12px">${esc(l.school||'—')}</td>
+              <td class="td" style="color:var(--mu);font-size:12px">${esc(l.college||'—')}</td>
+              <td class="td">${l.sport?`<span class="tag">${esc(l.sport)}</span>`:'<span style="color:var(--di);font-size:11px">—</span>'}</td>
+              <td class="td"><div style="display:flex;align-items:center;gap:6px"><span class="dot ${DM[l.status]||'d-s'}"></span><select class="ssel" onchange="AP.setStatus('${l.id}',this.value)">${STATS.map(st=>`<option value="${st}" ${st===l.status?'selected':''} style="background:var(--s2);color:var(--tx)">${st}</option>`).join('')}</select></div></td>
+              <td class="td"><div style="display:flex;align-items:center;gap:3px"><span style="color:var(--di);font-size:12px">$</span><input type="number" min="0" value="${l.price||''}" placeholder="0" class="pin" onchange="AP.setPrice('${l.id}',this.value)"/></div></td>
+              <td class="td"><input class="ie" value="${esc(l.notes||'')}" placeholder="note…" onchange="AP.setNotes('${l.id}',this.value)"/></td>
+              <td class="td num" style="color:var(--di);font-size:11px;white-space:nowrap">${fd(l.date||l.created_at)}</td>
+              <td class="td" style="white-space:nowrap;text-align:right">
+                <button onclick="AP.openDM('${l.id}')" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#93C5FD;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit;margin-right:4px;transition:background .1s" onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.1)'">✦ DM</button>
+                <button class="bx" onclick="AP.confirmDelete('${l.id}')">×</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>`;
 }
 
-// ── ADD FORM ──────────────────────────────────────────────────────────────────
+/* ── ADD FORM ── */
 function addFormHTML(){
   return`<div class="fp">
-    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:14px">Add Athlete to Pipeline</div>
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:13px">Add Athlete</div>
     <form onsubmit="event.preventDefault();AP.submitForm(this)">
       <div class="fg">
         <input name="name" required placeholder="Athlete Name *" class="field"/>
         <input name="ig" placeholder="@instagram" class="field"/>
         <input name="school" placeholder="High School" class="field"/>
         <input name="college" placeholder="Committed College" class="field"/>
-        <select name="sport" class="field">
-          <option value="">Sport</option>
-          ${SPORTS.map(s=>`<option>${s}</option>`).join('')}
-        </select>
+        <select name="sport" class="field"><option value="">Sport</option>${SPORTS.map(s=>`<option>${s}</option>`).join('')}</select>
         <div style="display:flex;gap:7px;align-items:center">
           <select name="pkg_price" class="field" style="flex:1" onchange="document.getElementById('cpw').style.display=this.value==='custom'?'flex':'none'">
             <option value="">Charge / Package</option>
-            ${A.packages.map(p=>`<option value="${p.price}">${p.name} — $${p.price}</option>`).join('')}
+            ${S.pkgs.map(p=>`<option value="${p.price}">${p.name} — $${p.price}</option>`).join('')}
             <option value="custom">Custom…</option>
           </select>
           <div id="cpw" style="display:none;align-items:center;gap:4px;flex-shrink:0">
             <span style="color:var(--di)">$</span>
-            <input name="custom_price" type="number" min="0" placeholder="0" class="field" style="width:72px"/>
+            <input name="custom_price" type="number" min="0" placeholder="0" class="field" style="width:68px"/>
           </div>
         </div>
-        <textarea name="notes" placeholder="Notes (optional)" class="field ff"></textarea>
-        <div class="ff" style="display:flex;justify-content:flex-end;gap:8px;margin-top:2px">
+        <textarea name="notes" placeholder="Notes" class="field ff"></textarea>
+        <div class="ff" style="display:flex;justify-content:flex-end;gap:7px">
           <button type="button" onclick="AP.closeForm()" class="btn btn-ghost">Cancel</button>
           <button type="submit" class="btn btn-blue">Add to Pipeline</button>
         </div>
@@ -596,264 +501,218 @@ function addFormHTML(){
   </div>`;
 }
 
-// ── REVENUE ───────────────────────────────────────────────────────────────────
-function revHTML(s){
-  const closed=A.leads.filter(l=>l.status==='Closed');
+/* ── PACKAGES ── */
+function pkgsHTML(){
+  const total=S.pkgs.reduce((a,p)=>a+p.price,0);
   return`<div class="fade">
-    <div class="page-head">
-      <div><h1 class="serif page-title">Revenue Hub</h1><p class="page-sub">Packages, goals & booking history.</p></div>
-    </div>
-    <div class="sg" style="grid-template-columns:2fr 1fr 1fr;margin-bottom:22px">
-      <div class="sc">
-        <div class="sl">Total Revenue</div>
-        <div class="sv num" style="color:var(--gn);font-size:42px">$${s.rv.toFixed(0)}</div>
-        <div class="pb" style="height:4px;margin-top:11px"><div class="pbf" style="width:${s.gp}%;background:var(--gn)"></div></div>
-        <div class="ss">$${s.rv.toFixed(0)} of $${A.settings.revenueGoal} monthly goal · ${s.gp}%</div>
-      </div>
-      <div class="sc"><div class="sl">Clients Closed</div><div class="sv num" style="color:white">${s.cl}</div><div class="ss">${s.cr}% close rate</div></div>
-      <div class="sc"><div class="sl">Avg per Deal</div><div class="sv num" style="color:var(--bl)">$${s.avg}</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-      <div class="sec">
-        <div class="sec-title">Goals</div>
-        <form onsubmit="event.preventDefault();AP.saveSettings(this)" style="display:flex;flex-direction:column;gap:10px">
-          <div><label style="font-size:11px;color:var(--mu);display:block;margin-bottom:4px">Daily DM Goal</label><input name="dailyGoal" type="number" min="1" value="${A.settings.dailyGoal}" class="field"/></div>
-          <div><label style="font-size:11px;color:var(--mu);display:block;margin-bottom:4px">Monthly Revenue Goal ($)</label><input name="revenueGoal" type="number" min="0" value="${A.settings.revenueGoal}" class="field"/></div>
-          <button type="submit" class="btn btn-blue btn-sm" style="align-self:flex-end">Save</button>
-        </form>
-      </div>
-      <div class="sec">
-        <div class="sec-title">Quick Actions</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-          <button class="qa" onclick="AP.go('pipeline');setTimeout(()=>AP.openForm(),50)"><span class="qa-icon">➕</span><div class="qa-l">Add Lead</div></button>
-          <button class="qa" onclick="AP.go('pipeline');setTimeout(()=>AP.filter('Responded'),50)"><span class="qa-icon">💬</span><div class="qa-l">Hot Leads</div><div class="qa-s">${A.leads.filter(l=>l.status==='Responded').length} waiting</div></button>
-          <button class="qa" onclick="AP.go('setup')"><span class="qa-icon">⚙️</span><div class="qa-l">Setup</div><div class="qa-s">Stripe, IG, etc.</div></button>
-          <button class="qa" onclick="AP.go('pipeline');setTimeout(()=>AP.filter('Follow Up'),50)"><span class="qa-icon">🔔</span><div class="qa-l">Follow Ups</div></button>
-        </div>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-title"><span>Service Packages</span><button onclick="AP.addPkg()" style="font-size:12px;color:var(--bl);background:none;border:none;cursor:pointer;font-family:inherit">+ Add</button></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px">
-        ${A.packages.map((p,i)=>`
-          <div class="pkg">
-            <button class="pkg-del" onclick="AP.delPkg(${i})">×</button>
-            <div style="font-size:11px;font-weight:700;color:var(--bl);margin-bottom:2px">$${p.price}</div>
-            <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:3px">${esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--mu);line-height:1.45">${esc(p.desc)}</div>
-          </div>`).join('')}
-      </div>
-    </div>
-    <div class="sec" style="margin-bottom:0">
-      <div class="sec-title">Closed Clients</div>
-      ${closed.length===0?`<div style="color:var(--mu);font-size:13px;padding:10px 0;text-align:center">No closed deals yet. Keep pushing!</div>`:`
-        ${closed.map(l=>`
-          <div class="client-row">
-            <div style="display:flex;align-items:center;gap:9px">
-              <span class="dot d-closed"></span>
-              <div><div style="font-size:13px;font-weight:600;color:var(--tx)">${esc(l.name)}</div><div style="font-size:11px;color:var(--mu)">${[l.school,l.sport].filter(Boolean).join(' · ')||'—'}</div></div>
-            </div>
-            <div style="text-align:right">
-              <div class="num" style="font-size:14px;font-weight:700;color:var(--gn)">+$${l.price||0}</div>
-              <div style="font-size:10px;color:var(--di)">${fd(l.date||l.created_at)}</div>
-            </div>
-          </div>`).join('')}
-        <div style="display:flex;justify-content:space-between;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--b1)">
-          <span style="font-size:12px;color:var(--mu)">Total</span>
-          <span class="num" style="font-size:17px;font-weight:700;color:var(--gn)">$${s.rv.toFixed(0)}</span>
-        </div>`}
-    </div>
-  </div>`;
-}
-
-// ── SETUP CHECKLIST ───────────────────────────────────────────────────────────
-function setupHTML(){
-  const done=clDone();
-  const pct=Math.round(done/CL_TOTAL*100);
-  const ci=(id,title,sub,badge,link,linkLabel)=>{
-    const checked=A.checklist[id]||false;
-    return`<div class="cl-item">
-      <button class="cl-check${checked?' done':''}" onclick="AP.toggleCheck('${id}')">
-        <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    <div class="ph">
+      <div><h1 class="serif pt">Packages</h1><p class="ps">Your service menu and pricing.</p></div>
+      <button class="btn btn-blue" onclick="AP.addPkg()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>New Package
       </button>
-      <div style="flex:1">
-        <div class="cl-title" style="${checked?'text-decoration:line-through;color:var(--mu)':''}">${title}<span class="cl-badge ${badge||''}">${badge?badge.replace('cb-','').replace('cb-pixieset','Pixieset').replace('cb-stripe','Stripe').replace('cb-ig','Instagram').replace('cb-brand','Brand'):''}</span></div>
-        <div class="cl-sub">${sub}</div>
-        ${link?`<a href="${link}" target="_blank" class="cl-link">Open ${linkLabel||'→'} ↗</a>`:''}
-      </div>
-    </div>`;
-  };
-
-  return`<div class="fade">
-    <div class="page-head">
-      <div>
-        <h1 class="serif page-title">Business Setup</h1>
-        <p class="page-sub">Everything you need to get APmedia fully operational.</p>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="text-align:right">
-          <div style="font-size:22px;font-weight:700;color:${pct===100?'var(--gn)':'var(--tx)'};font-variant-numeric:tabular-nums">${pct}%</div>
-          <div style="font-size:11px;color:var(--mu)">${done}/${CL_TOTAL} done</div>
-        </div>
-        <div class="pb" style="width:100px;height:6px;border-radius:99px"><div class="pbf" style="width:${pct}%;background:${pct===100?'var(--gn)':'var(--pu)'}"></div></div>
-      </div>
     </div>
 
-    <!-- STRIPE -->
-    <div class="sec">
-      <div class="section-divider">Stripe & Payments</div>
-      ${ci('stripe1','Create your Stripe account','Go to stripe.com, sign up with your business email, add your bank account so you can receive payouts.','cb-stripe','https://stripe.com','Stripe')}
-      ${ci('stripe2','Set up Stripe Payment Links','In Stripe dashboard → Payment Links → Create a link for each package (Commitment Post $25, Highlight $75, etc). Copy the link — you\'ll paste it in Instagram bio + DMs.','cb-stripe','https://dashboard.stripe.com/payment-links','Stripe Dashboard')}
-      ${ci('stripe3','Enable Stripe for Pixieset','In Pixieset → Store Settings → Payment → Connect Stripe. This makes your photo store actually charge clients.','cb-stripe','https://pixieset.com','Pixieset')}
-      ${ci('stripe4','Test a payment','Buy something from your own store with a test card (4242 4242 4242 4242) to confirm the whole flow works end to end.','cb-stripe')}
+    <!-- Package cards grid -->
+    <div class="pkg-grid" style="margin-bottom:20px">
+      ${S.pkgs.map((p,i)=>`<div class="pkg">
+        <button class="pkg-del" onclick="AP.delPkg(${i})">×</button>
+        <div style="font-size:24px;font-weight:300;font-family:'Fraunces',serif;color:var(--gn);letter-spacing:-.02em;margin-bottom:4px">$${p.price}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:5px">${esc(p.name)}</div>
+        <div style="font-size:12px;color:var(--mu);line-height:1.5">${esc(p.desc)}</div>
+      </div>`).join('')}
     </div>
 
-    <!-- PIXIESET -->
-    <div class="sec">
-      <div class="section-divider">Pixieset Store</div>
-      ${ci('pix1','Set your store prices','Pixieset → Store → Digital Downloads or Prints. Price your commitment photos, highlight packages. Match your Stripe payment links.','cb-pixieset','https://pixieset.com/store','Pixieset Store')}
-      ${ci('pix2','Add a professional cover image','Your Pixieset homepage needs a strong header photo — use one of your best sports shots. First impression matters.','cb-pixieset')}
-      ${ci('pix3','Create a gallery for each sport','Separate galleries for Football, Basketball, etc. makes it easy for athletes to find their sport and builds trust.','cb-pixieset')}
+    <!-- Price list table view -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="padding:13px 16px;border-bottom:1px solid var(--b1);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--di);font-weight:700">Full Price List</div>
+      <table class="tbl">
+        <thead><tr>
+          <th class="th">Package</th>
+          <th class="th">Description</th>
+          <th class="th" style="text-align:right">Price</th>
+          <th class="th"></th>
+        </tr></thead>
+        <tbody>
+          ${S.pkgs.map((p,i)=>`<tr class="tr">
+            <td class="td"><div style="font-weight:600;color:var(--tx);font-size:13px">${esc(p.name)}</div></td>
+            <td class="td" style="color:var(--mu);font-size:12px;max-width:300px">${esc(p.desc)}</td>
+            <td class="td" style="text-align:right">
+              <span class="num" style="font-size:16px;font-weight:700;color:var(--gn)">$${p.price}</span>
+            </td>
+            <td class="td" style="text-align:right">
+              <button onclick="AP.editPkg(${i})" style="font-size:11px;color:var(--mu);background:none;border:1px solid var(--b1);padding:4px 9px;border-radius:7px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:5px" onmouseover="this.style.color='var(--tx)'" onmouseout="this.style.color='var(--mu)'">Edit</button>
+              <button class="bx" onclick="AP.delPkg(${i})">×</button>
+            </td>
+          </tr>`).join('')}
+          <tr style="background:rgba(12,11,10,.6)">
+            <td class="td" colspan="2" style="font-size:12px;color:var(--mu);font-weight:500">All packages combined</td>
+            <td class="td" style="text-align:right"><span class="num" style="font-size:14px;font-weight:700;color:var(--tx)">$${total}</span></td>
+            <td class="td"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- INSTAGRAM -->
-    <div class="sec">
-      <div class="section-divider">Instagram</div>
-      ${ci('ig1','Switch to a Creator or Business account','Settings → Account → Switch to Professional. This unlocks analytics and lets you add a contact button.','cb-ig')}
-      ${ci('ig2','Optimize your bio','Format: Line 1: what you do (Sports Highlight Reels 🎬), Line 2: who you serve (HS Athletes → College Commits), Line 3: your price or CTA ($25 commitment posts), Line 4: your link.','cb-ig')}
-      ${ci('ig3','Add your Stripe/Pixieset link to bio','Use Linktree (free) or just your Pixieset store URL. Every DM you send should end with "check the link in my bio."','cb-ig','https://linktr.ee','Linktree')}
-      ${ci('ig4','Post 3 sample pieces of work','Before mass DMing athletes, have at least 3 strong posts showing what you make. Athletes will check your page before responding.','cb-ig')}
-    </div>
-
-    <!-- BRAND ─────────────────────────────────────────────── -->
-    <div class="sec" style="margin-bottom:0">
-      <div class="section-divider">Brand & Business</div>
-      ${ci('br1','Pick one consistent username across all platforms','@th3apmedia or similar — same on IG, TikTok, Pixieset, email. Consistency = professionalism.','cb-brand')}
-      ${ci('br2','Create a simple rate card image','One graphic showing your 3-4 packages and prices. Post it to your story highlights. Athletes ask "how much?" — just send this.','cb-brand')}
-      ${ci('br3','Set up a business email','Get a free Gmail like apmedia.bookings@gmail.com or buy a domain ($12/yr on Namecheap) for ap@apmediaproductions.com. Looks legit.','cb-brand','https://namecheap.com','Namecheap')}
+    <!-- Tip -->
+    <div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:600;color:#93C5FD;margin-bottom:5px">💡 Pro tip — create Stripe Payment Links</div>
+      <div style="font-size:12px;color:var(--mu);line-height:1.6">Go to <strong style="color:var(--tx)">dashboard.stripe.com → Payment Links</strong> → create one link per package with the exact price. Put those links in your Instagram bio using Linktree. When an athlete says yes, you send the link and they pay instantly — no back and forth.</div>
     </div>
   </div>`;
 }
 
-// ── MODALS ────────────────────────────────────────────────────────────────────
+/* ── MODALS ── */
 function delModal(){
-  const l=A.leads.find(x=>x.id===A.confirmDel);
-  return`<div class="overlay" onclick="if(event.target===this)AP.cancelDel()">
-    <div class="mbox" style="max-width:380px">
-      <div class="mhead"><div><div class="mtitle">Remove Athlete?</div></div><button class="btn-icon" onclick="AP.cancelDel()">×</button></div>
-      <p style="font-size:13px;color:var(--mu);margin-bottom:22px;line-height:1.6">This will permanently remove <strong style="color:var(--tx)">${esc(l?.name||'')}</strong> from your pipeline.</p>
-      <div style="display:flex;gap:9px;justify-content:flex-end">
+  const l=S.leads.find(x=>x.id===S.delId);
+  return`<div class="ov" onclick="if(event.target===this)AP.cancelDel()">
+    <div class="mb" style="max-width:360px">
+      <div class="mh"><div class="mt">Remove Athlete?</div><button class="bx" onclick="AP.cancelDel()">×</button></div>
+      <p style="font-size:13px;color:var(--mu);margin-bottom:20px;line-height:1.6">Permanently remove <strong style="color:var(--tx)">${esc(l?.name||'')}</strong> from your pipeline.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn btn-ghost" onclick="AP.cancelDel()">Cancel</button>
-        <button onclick="AP.deleteLead('${A.confirmDel}')" style="background:#7F1D1D;color:#FCA5A5;border:1px solid rgba(239,68,68,0.25);padding:10px 17px;font-size:13px;border-radius:10px;cursor:pointer;font-weight:500;font-family:inherit">Remove</button>
+        <button onclick="AP.deleteLead('${S.delId}')" style="background:#7F1D1D;color:#FCA5A5;border:1px solid rgba(239,68,68,.22);padding:10px 16px;font-size:13px;border-radius:10px;cursor:pointer;font-weight:500;font-family:inherit">Remove</button>
       </div>
     </div>
   </div>`;
 }
 
 function dmModal(){
-  const l=A.dmLead;
+  const l=S.dmLead;
   const vars=['First DM','Follow-Up','Post Reply'];
-  return`<div class="overlay" onclick="if(event.target===this)AP.closeDM()">
-    <div class="mbox" style="max-width:500px">
-      <div class="mhead">
-        <div>
-          <div class="mtitle">✦ AI DM Generator</div>
-          <div class="msub">${esc(l.name)}${l.college?` · ${esc(l.college)}`:''}${l.sport?` · ${esc(l.sport)}`:''}</div>
+  const hasKey=!!getApiKey();
+  return`<div class="ov" onclick="if(event.target===this)AP.closeDM()">
+    <div class="mb" style="max-width:500px">
+      <div class="mh">
+        <div><div class="mt">✦ AI DM Generator</div><div class="msb">${esc(l.name)}${l.college?` · ${esc(l.college)}`:''}${l.sport?` · ${esc(l.sport)}`:''}</div></div>
+        <button class="bx" onclick="AP.closeDM()">×</button>
+      </div>
+      ${!hasKey?`<div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:10px;padding:13px 15px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:600;color:#C4B5FD;margin-bottom:8px">Add your Anthropic API key to generate DMs</div>
+        <div style="display:flex;gap:8px">
+          <input id="inline-key" type="password" placeholder="sk-ant-..." class="field" style="flex:1;padding:8px 11px;font-size:13px"/>
+          <button onclick="AP.saveKeyInline()" class="btn btn-blue" style="padding:8px 13px;font-size:12px">Save</button>
         </div>
-        <button class="btn-icon" onclick="AP.closeDM()">×</button>
+        <div style="font-size:11px;color:var(--mu);margin-top:7px">Get yours at <a href="https://console.anthropic.com/keys" target="_blank" style="color:#93C5FD">console.anthropic.com/keys</a> · saved only on this device</div>
+      </div>`:`
+      <div style="display:flex;gap:5px;margin-bottom:4px">
+        ${vars.map((v,i)=>`<button class="vtab${S.dmVar===i?' on':''}" onclick="AP.setDMVar(${i})">${v}</button>`).join('')}
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:4px">
-        ${vars.map((v,i)=>`<button class="vtab${A.dmVariant===i?' on':''}" onclick="AP.setDMVariant(${i})">${v}</button>`).join('')}
+      <div class="dm-out${S.dmLoading?' loading':''}">
+        ${S.dmLoading?`<div class="spin"></div><span>Writing your DM…</span>`:S.dmText?esc(S.dmText):`<span style="color:var(--di)">Hit Generate → get a personalized DM for ${esc(l.name)} →</span>`}
       </div>
-      <div class="dm-out${A.dmLoading?' loading':''}">
-        ${A.dmLoading?`<div class="spin"></div><span>Writing your DM…</span>`:A.dmText?esc(A.dmText):`<span style="color:var(--di)">Hit Generate to write a personalized DM using ${esc(l.name)}'s info →</span>`}
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-blue" onclick="AP.generateDM()" ${S.dmLoading?'disabled':''} style="flex:1">${S.dmLoading?'Writing…':'⚡ Generate'}</button>
+        ${S.dmText?`<button id="cpb" onclick="AP.copyDM()" class="btn btn-ghost" style="flex:1">Copy DM</button>`:''}
+        ${S.dmText?`<button onclick="AP.generateDM()" class="btn btn-ghost" title="Regenerate" style="padding:9px 11px">↺</button>`:''}
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-blue" onclick="AP.generateDM()" ${A.dmLoading?'disabled':''} style="flex:1">${A.dmLoading?'Writing…':'⚡ Generate'}</button>
-        ${A.dmText?`<button id="cpbtn" onclick="AP.copyDM()" class="btn btn-ghost" style="flex:1">Copy DM</button>`:''}
-        ${A.dmText?`<button onclick="AP.generateDM()" class="btn btn-ghost" title="Regenerate" style="padding:9px 12px">↺</button>`:''}
-      </div>
-      ${A.dmText?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--b1)">
-        <button onclick="AP.markSent('${l.id}')" style="font-size:12px;color:var(--gn);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);padding:7px 13px;border-radius:9px;cursor:pointer;font-family:inherit">✓ Mark as Sent & Close</button>
+      ${S.dmText?`<div style="margin-top:11px;padding-top:11px;border-top:1px solid var(--b1)">
+        <button onclick="AP.markSent('${l.id}')" style="font-size:12px;color:var(--gn);background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);padding:7px 12px;border-radius:8px;cursor:pointer;font-family:inherit">✓ Mark as Sent & Close</button>
       </div>`:''}
+      `}
     </div>
   </div>`;
 }
 
-// ── AI ────────────────────────────────────────────────────────────────────────
+/* ── API KEY MODAL ── */
+let showingKeyModal=false;
+function keyModal(){
+  return`<div class="ov" onclick="if(event.target===this){showingKeyModal=false;render()}">
+    <div class="mb" style="max-width:420px">
+      <div class="mh"><div class="mt">Anthropic API Key</div><button class="bx" onclick="showingKeyModal=false;render()">×</button></div>
+      <p style="font-size:13px;color:var(--mu);margin-bottom:14px;line-height:1.6">Your key is saved only on this device (localStorage). It's never sent anywhere except directly to Anthropic's API when you generate a DM.</p>
+      <input id="key-input" type="password" placeholder="sk-ant-api03-..." value="${esc(getApiKey())}" class="field" style="margin-bottom:12px"/>
+      <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+        <a href="https://console.anthropic.com/keys" target="_blank" style="font-size:12px;color:var(--bl)">Get your key →</a>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="showingKeyModal=false;render()">Cancel</button>
+          <button class="btn btn-blue" onclick="AP.saveKey()">Save Key</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── AI PROMPTS ── */
 const PROMPTS={
-  0:l=>`You write Instagram DMs for a sports media editor named APmedia who films and edits highlight reels and commitment videos for high school athletes.
+  0:l=>`You write Instagram DMs for APmedia, a sports media editor who makes highlight reels and commitment videos for high school athletes.
 
 Write a short, genuine cold DM to ${l.name}${l.college?`, who just committed to ${l.college}`:' (high school athlete)'}${l.sport?` for ${l.sport}`:''}${l.school?` from ${l.school}`:''}.
 
 Rules:
-- Sound like a real person, not a marketing email
-- Mention something specific about their commitment or sport
-- Say you make highlight reels / commitment videos
-- Ask if they're interested
-- 3-4 sentences MAX
-- One emoji at most
-- No hashtags, no "Hey there!", no corporate speak
+- Sound like a real teenage/young person, not marketing copy
+- Mention their commitment or sport specifically if available
+- Briefly say you make highlight reels / commitment videos
+- Ask if they're interested in one
+- Max 3-4 sentences
+- 1 emoji max, no hashtags, no "Hey there!"
 
-Write ONLY the message. No intro, no quotes.`,
+Write ONLY the DM message. Nothing else.`,
 
   1:l=>`You write Instagram DMs for APmedia, a sports media editor.
 
-Write a short follow-up DM to ${l.name}${l.college?` (committed to ${l.college})`:''} who hasn't responded to the first message yet.
+Write a short follow-up to ${l.name}${l.college?` (committed to ${l.college})`:''} who hasn't replied yet.
 
 Rules:
-- Acknowledge you reached out before, keep it light
-- Not desperate or pushy
+- Mention you reached out before, keep it light
+- Not needy or pushy
 - 2-3 sentences max
-- Give them an easy way to just say yes or ask a question
-- Sound like a real person following up
+- Easy for them to respond
 
 Write ONLY the message.`,
 
-  2:l=>`You write comments/DMs for APmedia, a sports media editor.
+  2:l=>`You write for APmedia, a sports media editor.
 
-Write a reply to ${l.name}'s commitment post${l.college?` announcing they committed to ${l.college}`:''}${l.sport?` to play ${l.sport}`:''}.
+Write a comment to drop on ${l.name}'s commitment post${l.college?` to ${l.college}`:''}${l.sport?` for ${l.sport}`:''}.
 
 Rules:
-- Genuinely congratulate them first, be specific
-- Naturally bring up that you make commitment videos / highlight reels
-- Ask if they'd want one
-- 2-3 sentences, sounds like a real comment not an ad
-- One emoji max
+- Congratulate them genuinely first
+- Naturally mention you make commitment videos
+- Ask if they want one
+- 2 sentences max, sounds organic not like an ad
 
-Write ONLY the message.`
+Write ONLY the comment.`
 };
 
 async function callAI(prompt){
+  const key=getApiKey();
+  if(!key)return'No API key set. Add your key to use the DM generator.';
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:200,
+        messages:[{role:'user',content:prompt}]
+      })
     });
+    if(!r.ok){const e=await r.json();return`Error: ${e.error?.message||r.status}`}
     const d=await r.json();
-    return d.content?.[0]?.text||'Error — try again.';
-  }catch(e){return'Network error — check your connection.'}
+    return d.content?.[0]?.text?.trim()||'No response. Try again.';
+  }catch(e){return`Network error: ${e.message}`}
 }
 
-// ── ACTIONS ───────────────────────────────────────────────────────────────────
+/* ── ACTIONS ── */
 async function addLead(d){
-  const row={user_id:A.user.id,name:d.name,ig:d.ig,school:d.school,college:d.college,date:d.date,status:d.status};
+  const row={user_id:S.user.id,name:d.name,ig:d.ig,school:d.school,college:d.college,date:d.date,status:d.status};
   const {data,error}=await SB.from('leads').insert([row]).select().single();
   if(error){alert('Error: '+error.message);return}
   if(data?.id)ext(data.id,{price:d.price||0,sport:d.sport||'',notes:d.notes||''});
-  A.showForm=false;
-  loadAll();
+  S.showForm=false;loadAll();
 }
 
 window.AP={
-  login:async()=>{A.authLoading=true;render();await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}})},
-  logout:async()=>{await SB.auth.signOut();A.leads=[];render()},
-  go:v=>{A.view=v;A.showForm=false;A.filter='All';render()},
-  search:v=>{A.search=v;render()},
-  filter:v=>{A.filter=v;render()},
-  openForm:()=>{A.showForm=true;render()},
-  closeForm:()=>{A.showForm=false;render()},
+  login:async()=>{S.authLoading=true;render();await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}})},
+  logout:async()=>{await SB.auth.signOut();S.leads=[];render()},
+  go:v=>{S.view=v;S.showForm=false;S.filter='All';render()},
+  filter:v=>{S.filter=v;render()},
+  openForm:()=>{S.showForm=true;render()},
+  closeForm:()=>{S.showForm=false;render()},
 
   submitForm(form){
     const fd=new FormData(form),d={};
@@ -866,90 +725,119 @@ window.AP={
 
   setStatus:async(id,status)=>{
     await SB.from('leads').update({status}).eq('id',id);
-    const l=A.leads.find(x=>x.id===id);if(l)l.status=status;render();
+    const l=S.leads.find(x=>x.id===id);if(l)l.status=status;
+    // only re-render the relevant part
+    render();
   },
   setPrice:(id,val)=>{
-    const price=parseFloat(val)||0;
-    ext(id,{price});
-    const l=A.leads.find(x=>x.id===id);if(l)l.price=price;render();
+    ext(id,{price:parseFloat(val)||0});
+    const l=S.leads.find(x=>x.id===id);if(l)l.price=parseFloat(val)||0;
   },
-  setNotes:(id,val)=>{ext(id,{notes:val});const l=A.leads.find(x=>x.id===id);if(l)l.notes=val},
+  setNotes:(id,val)=>{
+    ext(id,{notes:val});
+    const l=S.leads.find(x=>x.id===id);if(l)l.notes=val;
+  },
 
-  confirmDelete:id=>{A.confirmDel=id;render()},
-  cancelDel:()=>{A.confirmDel=null;render()},
+  confirmDelete:id=>{S.delId=id;render()},
+  cancelDel:()=>{S.delId=null;render()},
   deleteLead:async id=>{
     await SB.from('leads').delete().eq('id',id);
     const ex=exl();delete ex[id];exs(ex);
-    A.leads=A.leads.filter(l=>l.id!==id);
-    A.confirmDel=null;render();
+    S.leads=S.leads.filter(l=>l.id!==id);
+    S.delId=null;render();
   },
 
   saveSettings(form){
     const fd=new FormData(form);
-    A.settings.dailyGoal=Math.max(1,parseInt(fd.get('dailyGoal'))||10);
-    A.settings.revenueGoal=Math.max(0,parseInt(fd.get('revenueGoal'))||500);
-    lss('settings',A.settings);render();
+    S.settings.dailyGoal=Math.max(1,parseInt(fd.get('dailyGoal'))||10);
+    S.settings.revenueGoal=Math.max(0,parseInt(fd.get('revenueGoal'))||500);
+    ls('settings',S.settings);render();
   },
+
   addPkg(){
     const name=prompt('Package name:');if(!name)return;
     const price=prompt('Price ($):');if(!price)return;
-    const desc=prompt('Description:')||'';
-    A.packages.push({id:Date.now(),name:name.trim(),price:parseInt(price)||0,desc:desc.trim()});
-    lss('packages',A.packages);render();
+    const desc=prompt("Short description (what's included):")??'';
+    S.pkgs.push({id:Date.now(),name:name.trim(),price:parseInt(price)||0,desc:desc.trim()});
+    ls('pkgs',S.pkgs);render();
+  },
+  editPkg(i){
+    const p=S.pkgs[i];if(!p)return;
+    const name=prompt('Package name:',p.name);if(name===null)return;
+    const price=prompt('Price ($):',p.price);if(price===null)return;
+    const desc=prompt('Description:',p.desc)??p.desc;
+    S.pkgs[i]={...p,name:name.trim(),price:parseInt(price)||0,desc:desc.trim()};
+    ls('pkgs',S.pkgs);render();
   },
   delPkg(i){
-    if(!confirm(`Remove "${A.packages[i]?.name}"?`))return;
-    A.packages.splice(i,1);lss('packages',A.packages);render();
-  },
-
-  toggleCheck(id){
-    A.checklist[id]=!A.checklist[id];
-    lss('checklist',A.checklist);render();
+    if(!confirm(`Remove "${S.pkgs[i]?.name}"?`))return;
+    S.pkgs.splice(i,1);ls('pkgs',S.pkgs);render();
   },
 
   openDM(id){
-    const l=A.leads.find(x=>x.id===id);if(!l)return;
-    A.dmLead=l;A.dmText='';A.dmVariant=0;A.dmLoading=false;render();
+    const l=S.leads.find(x=>x.id===id);if(!l)return;
+    S.dmLead=l;S.dmText='';S.dmVar=0;S.dmLoading=false;render();
   },
-  closeDM(){A.dmLead=null;A.dmText='';A.dmLoading=false;render()},
-  setDMVariant(i){A.dmVariant=i;A.dmText='';render()},
+  closeDM(){S.dmLead=null;S.dmText='';S.dmLoading=false;render()},
+  setDMVar(i){S.dmVar=i;S.dmText='';render()},
   async generateDM(){
-    if(!A.dmLead)return;
-    A.dmLoading=true;A.dmText='';render();
-    A.dmText=await callAI(PROMPTS[A.dmVariant](A.dmLead));
-    A.dmLoading=false;render();
+    if(!S.dmLead)return;
+    S.dmLoading=true;S.dmText='';render();
+    S.dmText=await callAI(PROMPTS[S.dmVar](S.dmLead));
+    S.dmLoading=false;render();
   },
   copyDM(){
-    if(!A.dmText)return;
-    navigator.clipboard.writeText(A.dmText).then(()=>{
-      const b=document.getElementById('cpbtn');
-      if(b){b.textContent='✓ Copied!';b.style.color='var(--gn)';setTimeout(()=>render(),1800)}
+    if(!S.dmText)return;
+    navigator.clipboard.writeText(S.dmText).then(()=>{
+      const b=document.getElementById('cpb');
+      if(b){b.textContent='✓ Copied!';b.style.color='var(--gn)';setTimeout(()=>{if(b)b.textContent='Copy DM';b.style.color=''},2000)}
     });
   },
   markSent(id){
     SB.from('leads').update({status:'Sent'}).eq('id',id);
-    const l=A.leads.find(x=>x.id===id);if(l)l.status='Sent';
-    A.dmLead=null;A.dmText='';render();
+    const l=S.leads.find(x=>x.id===id);if(l)l.status='Sent';
+    S.dmLead=null;S.dmText='';render();
+  },
+
+  showKeyModal(){showingKeyModal=true;render()},
+  saveKey(){
+    const v=document.getElementById('key-input')?.value?.trim();
+    if(!v)return;
+    setApiKey(v);showingKeyModal=false;render();
+  },
+  saveKeyInline(){
+    const v=document.getElementById('inline-key')?.value?.trim();
+    if(!v)return alert('Paste your API key first.');
+    setApiKey(v);render();
   },
 };
 
 function loginHTML(){
-  return`<div class="login-wrap">
-    <div class="login-card fade">
-      <div style="display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:6px">
-        <div style="width:9px;height:9px;background:var(--bl);border-radius:50%;box-shadow:0 0 14px var(--blg)"></div>
-        <span class="serif" style="font-size:34px;font-weight:300;color:white;letter-spacing:-0.02em">APmedia</span>
-        <em class="serif" style="font-size:34px;font-weight:300;color:var(--di)">hub</em>
-      </div>
-      <p style="color:var(--mu);font-size:13px;margin-top:6px">Your daily booking & pipeline system.</p>
-      <button class="g-btn" onclick="AP.login()" ${A.authLoading?'disabled':''}>
-        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        ${A.authLoading?'Connecting…':'Continue with Google'}
-      </button>
-      <p style="font-size:11px;color:var(--di);margin-top:16px">Open in Safari on iPad → Share → Add to Home Screen</p>
+  return`<div class="lw"><div class="lc fade">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px">
+      <div style="width:8px;height:8px;background:var(--bl);border-radius:50%;box-shadow:0 0 12px var(--blg)"></div>
+      <span class="serif" style="font-size:32px;font-weight:300;color:#fff;letter-spacing:-.02em">APmedia</span>
+      <em class="serif" style="font-size:32px;font-weight:300;color:var(--di)">hub</em>
     </div>
-  </div>`;
+    <p style="color:var(--mu);font-size:13px;margin-top:5px">Daily pipeline & booking dashboard.</p>
+    <button class="gb" onclick="AP.login()" ${S.authLoading?'disabled':''}>
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      ${S.authLoading?'Connecting…':'Continue with Google'}
+    </button>
+    <p style="font-size:11px;color:var(--di);margin-top:14px">Safari on iPad → Share → Add to Home Screen</p>
+  </div></div>`;
 }
+
+// patch render to include key modal
+const _render=render;
+render=function(){
+  _render();
+  if(showingKeyModal){
+    const extra=document.createElement('div');
+    extra.innerHTML=keyModal();
+    document.getElementById('root').appendChild(extra.firstElementChild);
+  }
+};
 
 boot();
 </script>
